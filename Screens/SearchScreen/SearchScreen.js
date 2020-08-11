@@ -1,28 +1,61 @@
-import React, { Component } from 'react';
-const image = require('../../images/logo.png')
+import React, { useState } from 'react';
+import {Dimensions} from 'react-native';
+import SearchBar from '../../CustomComponents/SearchBar';
+
+
+
+const image = require('../../images/drive2.jpg')
+const {width, height} = Dimensions.get('window');
+
 import {
     View,
     Text,
     ImageBackground,
-    StyleSheet
+    StyleSheet,
+    Image,
+    ScrollView
     
   } from 'react-native';
   
 
 
 function SearchScreen() {
-    return (
+    
+  const [search, setSearch] = useState('');
+  
+  return (
+      
       <View style={styles.container}>
-        <ImageBackground source={image} style={styles.image}>
-       
-        </ImageBackground>
-        <Text style={styles.text}>
-          RENT
-        </Text>
-        <Text style={styles.logoText}>
-          Inchiriaza orice, oriunde
-        </Text>
+        
+        <View style={styles.searchContainer}>
+          
+              <View styles={styles.imageContainer} >
+              
+                  <ImageBackground source={image} style={styles.image} imageStyle={imgStyle}>
+                  
+                      <SearchBar
+                        placeholder="Current Location/City"
+                        onChangeText={(search)=>setSearch(search)}
+                        value={search}
+                        containerStyle={styles.searchBarContainerStyle}
+
+                      />
+
+
+                  </ImageBackground>
+                  
+              </View>
+ 
+             
+        </View>
+
+        <View style={styles.adds}>
+         
+        </View>
+
+
       </View>
+    
     );
   }
 
@@ -30,34 +63,40 @@ function SearchScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      flexDirection: "column"
+      flexDirection: "column",
+      backgroundColor:"red"
     },
     image: {
-      flex: 1,
-      width:400,
-      height: 400,
-      resizeMode: "stretch",
-      justifyContent: "center"
-    },
-    text: {
-      color: "grey",
-      fontSize: 30,
-      fontWeight: "bold",
-      paddingLeft:140,
+      justifyContent: "center",
+      width:"100%",
       
-      paddingBottom:20,
-      justifyContent: "center"
+      height:undefined,
+      aspectRatio:16/9
     },
-    logoText:{
+    
+      searchContainer: {
+        flex:1,
+        backgroundColor: "red",
+        alignItems:"center"
+      
+      },
+      adds: {
+        flex:1,
+        justifyContent:"center"
+      },
 
-        color: "grey",
-        fontWeight: "bold",
-        fontSize: 25,
-        justifyContent:"center",
-        paddingBottom: 40,
-        paddingLeft: 35
+      imageContainer:{  
         
+      }
+    
 
-    }
+    
   });
+
+    imgStyle = {
+
+      borderBottomLeftRadius: width/20,
+      borderBottomRightRadius: width/20
+    } 
+
   export default SearchScreen;

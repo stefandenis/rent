@@ -8,7 +8,7 @@
 
 
 
-import React, { Component } from 'react';
+import React, { useState, Componen } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -20,83 +20,22 @@ import ListScreen from './Screens/ListScreen/ListScreen';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
-// const Tab = createBottomTabNavigator({
 
-//   Search: {
-//     screen: SearchScreen,
-//     navigationOptions: () => ({
-//         tabBarIcon: ({tintColor}) => (
-//             <Icon
-//                 name="bookmark"
-//                 color={tintColor}
-//                 size={24}
-//             />
-//         )
-//     })
-//   },
-//     Messages: {
-//       screen: MessagesScreen,
-//       navigationOptions: () => ({
-//         tabBarIcon: ({tintColor}) => (
-//           <Icon
-//               name="bookmark"
-//               color={tintColor}
-//               size={24}
-//           />
-//         )
-//       })
-//     },
+import {StatusBar} from 'react-native';
 
-//     List:{
-//       screen: ListScreen,
-//       navigationOptions: () => ({
-//         tabBarIcon: ({tintColor}) => (
-//           <Icon
-//               name="bookmark"
-//               color={tintColor}
-//               size={24}
-//           />
-//         ) 
-//       })
-//     },
-//     Profile:{
-//       screen: ProfileScreen,
-//       navigationOptions: () => ({
-//         tabBarIcon: ({tintColor}) => (
-//           <Icon
-//               name="bookmark"
-//               color={tintColor}
-//               size={24}
-//           />
-//         )
-//       })
-//     }
-//   }
+StatusBar.setBackgroundColor("rgba(0,0,0,0)")
+StatusBar.setBarStyle("light-content")
+StatusBar.setTranslucent(true)
+
+
+function App(){
+
   
-// ,{
-//   tabBarOptions: {
-//       showLabel: false, // hide labels
-//       activeTintColor: '#567FE5', // active icon color
-//       inactiveTintColor: '#586589',  // inactive icon color
-//       style: {
-//           backgroundColor: '#171F33' // TabBar background
-//       }
-//   }
-// });
-
-class App extends Component {
-  constructor(props){
-
-    super(props);
-    
-    this.state = {} 
-    
-  }
 
 
-  render(){
 
-    return(
+
+  return(
       <NavigationContainer>
       <Tab.Navigator
       
@@ -146,7 +85,7 @@ class App extends Component {
   }
 
 
-}
+
 
 
 export default App;
