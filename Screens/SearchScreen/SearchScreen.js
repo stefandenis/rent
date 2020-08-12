@@ -100,23 +100,12 @@ function SearchScreen() {
     
       searchContainer: {
         height:height/3,
-        backgroundColor: "gray",
+        //backgroundColor: "gray",
         alignItems:"center"
       
       },
-      adds: {
-       
-      },
-
-      imageContainer:{  
-        
-      },
-      carSlideShow:{
-        
-        backgroundColor:"blue",
-        paddingVertical:0
-      }
     
+      
 
     
   });

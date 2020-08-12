@@ -41,7 +41,7 @@ function CarPreviewBox(props){
                
                        
             </View>
-            
+
 
             
         </View>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
           borderBottomRightRadius:20,
           borderTopLeftRadius:100,
           borderTopRightRadius:100,
-         
+          marginBottom:20,
           backgroundColor:"rgba(255,255,255,1)",
           height: height/3.5
         },
