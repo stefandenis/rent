@@ -1,13 +1,14 @@
 import React, {useState} from 'react'
 import {
 
-    ImageBackground, View,StyleSheet,Dimensions,Text,FlatList
+    ImageBackground, View,StyleSheet,Dimensions,Text,FlatList,TouchableOpacity
 
 
 } from 'react-native'
 import CarPreviewBox from './CarPreviewBox'
 const {width, height} = Dimensions.get('window');
 import Icon from 'react-native-vector-icons/Ionicons';
+
 
 
 
@@ -22,14 +23,20 @@ function CarSlideShow(){
 
     ]
     
-    
+    const pressHandler = ()=>{
+
+        console.log('tosssuch')
+    }
     
     return(
 
         <View >
+            
             <View style={{alignItems:"center"}}>
+               
             <Text style={styles.textStyle}>You might like: </Text>
             </View> 
+          
               <FlatList 
                 contentContainerStyle={styles.slideShow}
                 horizontal = {true}

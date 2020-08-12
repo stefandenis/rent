@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 
-import {Text, View, Button, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
+import {Text, View, Button, SafeAreaView, ScrollView, StyleSheet,TouchableOpacity} from 'react-native';
 
 
 function ProfileScreen() {
@@ -18,7 +18,12 @@ function ProfileScreen() {
             <Text>sdfsd</Text>
 
             <View style = {{flex:1, backgroundColor:"gray"}}>
-
+            <TouchableOpacity style={{backgroundColor: "red", padding: 20}} onPress={()=> {
+    console.log('does not work');
+    }
+  }>
+  <Text>X</Text>
+</TouchableOpacity>
             </View>
             <View style = {{flex:1, backgroundColor:"blue"}}>
 

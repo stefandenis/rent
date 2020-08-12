@@ -1,45 +1,56 @@
 import React, {useState} from 'react'
 import {
 
-    ImageBackground, View,StyleSheet,Dimensions,Text
+    ImageBackground, View,StyleSheet,Dimensions,Text,TouchableOpacity
 
 
 } from 'react-native'
 
 const {width, height} = Dimensions.get('window');
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { LongPressGestureHandler } from 'react-native-gesture-handler';
+import {useNavigation} from '@react-navigation/native';
+import {ProfileScreen} from '../Screens/ProfileScreen/ProfileScreen'
 function CarPreviewBox(props){
 
+    const navigation = useNavigation();
 
+    const pressHandler = ()=>{
+
+    navigation.navigate('Test',{carName: props.carName})
+}
     return(
 
         <View  style = {styles.container}>
             
-            <View style={styles.imageContainer}>
-            <ImageBackground source={props.source} style = {styles.imageStyle} imageStyle={{borderRadius: 20}}>
-               <View style={styles.infoContainer}> 
+            <TouchableOpacity  onPress={() => pressHandler()
+            }>  
+                <View style={styles.imageContainer}>
+                 
+ 
+                    <ImageBackground source={props.source} style = {styles.imageStyle} imageStyle={{borderRadius: 20}}>
+                        <View style={styles.infoContainer}> 
                     
-                    <View style = {styles.starsContainer}>
-                        <Text style = {styles.starsTextStyle}>{props.stars}</Text>
+                            <View style = {styles.starsContainer}>
+                                <Text style = {styles.starsTextStyle}>{props.stars}</Text>
                         
-                        <View style = {styles.iconContainer}>
-                        <Icon name={"star"} size={23} color={"rgba(250, 153, 0,1)"} />
-                        
+                                <View style = {styles.iconContainer}>
+                                    <Icon name={"star"} size={23} color={"rgba(250, 153, 0,1)"} />
+                                </View>
+                                <Text style = {styles.tripsStyle}>{`(in ${props.trips} trips)`}</Text>
+                            </View>
+                    
+                    
+                                <Text style = {styles.textStyle}>{`${props.price}$/day`}</Text>
                         </View>
-                        <Text style = {styles.tripsStyle}>{`(in ${props.trips} trips)`}</Text>
-                    </View>
-                    
-                    
-                    <Text style = {styles.textStyle}>{`${props.price}$/day`}</Text>
-                </View>
 
-            </ImageBackground>
-            </View>
+                    </ImageBackground>
+                </View>
+            
+            </TouchableOpacity>
+ 
             <View style = {styles. infoUserContainer}>
-                <Text style={styles.carName}> {`${props.carName}`}</Text>
-               
-                       
+                <Text style={styles.carName}> {`${props.carName}`}</Text>                      
             </View>
 
 
@@ -68,8 +79,8 @@ const styles = StyleSheet.create({
         
           borderBottomLeftRadius:20,
           borderBottomRightRadius:20,
-          borderTopLeftRadius:100,
-          borderTopRightRadius:100,
+          borderTopLeftRadius:20,
+          borderTopRightRadius:20,
           marginBottom:20,
           backgroundColor:"rgba(255,255,255,1)",
           height: height/3.5
