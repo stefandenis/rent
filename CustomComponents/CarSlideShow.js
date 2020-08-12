@@ -27,6 +27,9 @@ function CarSlideShow(){
     return(
 
         <View >
+            <View style={{alignItems:"center"}}>
+            <Text style={styles.textStyle}>You might like: </Text>
+            </View> 
               <FlatList 
                 contentContainerStyle={styles.slideShow}
                 horizontal = {true}
@@ -60,7 +63,15 @@ function CarSlideShow(){
 const styles = StyleSheet.create({
         
     slideShow:{
-        paddingVertical:50
+        paddingVertical:0
+    },
+    textStyle:{
+        
+        color:"rgba(55,146,238,1)",
+        fontSize:25,
+        fontWeight:"bold",
+        paddingHorizontal:5,
+        
     }
 
 

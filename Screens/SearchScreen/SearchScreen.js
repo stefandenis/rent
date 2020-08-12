@@ -13,7 +13,8 @@ import {
     ImageBackground,
     StyleSheet,
     Image,
-    ScrollView,SafeAreaView
+    ScrollView,SafeAreaView,
+    Button
     
   } from 'react-native';
   
@@ -56,7 +57,21 @@ function SearchScreen() {
           <View style={styles.carSlideShow}>
           
             <CarSlideShow/>
+            
           </View>
+
+
+        <View style={{height:200,width:width, backgroundColor:"green"}}>
+
+
+        </View>
+        
+        <View style={styles.carSlideShow}>
+          
+            <CarSlideShow/>
+            
+          </View>
+       
        
 
         </View>
@@ -84,16 +99,13 @@ function SearchScreen() {
     },
     
       searchContainer: {
-        flex:1,
-         backgroundColor: "gray",
+        height:height/3,
+        backgroundColor: "gray",
         alignItems:"center"
       
       },
       adds: {
-       flex:1,
-        
-        justifyContent:"center",
-        alignItems:"center"
+       
       },
 
       imageContainer:{  
@@ -101,6 +113,8 @@ function SearchScreen() {
       },
       carSlideShow:{
         
+        backgroundColor:"blue",
+        paddingVertical:0
       }
     
 

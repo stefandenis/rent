@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 
-import {Text, View, Button} from 'react-native';
+import {Text, View, Button, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
 
 
 function ProfileScreen() {
@@ -12,12 +12,46 @@ function ProfileScreen() {
   });
 
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor:'blue' }}>
-        <Text>You clicked {count} times</Text>
-        <Button onPress = {()=>setCount(count+1)} title = "Click me!"/>
+      <SafeAreaView style={styles.container}>
+      <ScrollView>
+          <View style={{backgroundColor:"red",height:500}}>
+            <Text>sdfsd</Text>
 
-      </View>
+            <View style = {{flex:1, backgroundColor:"gray"}}>
+
+            </View>
+            <View style = {{flex:1, backgroundColor:"blue"}}>
+
+          </View>
+          <View style = {{flex:1, backgroundColor:"green"}}>
+
+          </View>
+        
+          
+          
+          </View>
+            
+          <View style={{flex:1,backgroundColor:"gray",height:500}}>
+            <Text>sfds</Text>
+
+          </View >
+
+          <View style={{backgroundColor:"green", height:500}}>
+          <Text>sdfsd</Text>
+          </View>
+
+      
+      
+    </ScrollView>
+        </SafeAreaView>
     );
   }
+
+const styles = StyleSheet.create({
+  container:{
+    flex:1
+
+  }
+})
 
   export default ProfileScreen;

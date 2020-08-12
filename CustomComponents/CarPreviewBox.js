@@ -14,7 +14,7 @@ function CarPreviewBox(props){
 
     return(
 
-        <View style = {styles.container}>
+        <View  style = {styles.container}>
             
             <View style={styles.imageContainer}>
             <ImageBackground source={props.source} style = {styles.imageStyle} imageStyle={{borderRadius: 20}}>
@@ -41,6 +41,7 @@ function CarPreviewBox(props){
                
                        
             </View>
+            
 
             
         </View>
@@ -70,7 +71,8 @@ const styles = StyleSheet.create({
           borderTopLeftRadius:100,
           borderTopRightRadius:100,
          
-          backgroundColor:"rgba(255,255,255,1)"  
+          backgroundColor:"rgba(255,255,255,1)",
+          height: height/3.5
         },
         
         imageStyle:{
