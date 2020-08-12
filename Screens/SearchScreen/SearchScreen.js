@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {Dimensions} from 'react-native';
 import SearchBar from '../../CustomComponents/SearchBar';
-
-
+import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
+import CarSlideShow from '../../CustomComponents/CarSlideShow'
 
 const image = require('../../images/drive2.jpg')
 const {width, height} = Dimensions.get('window');
@@ -13,10 +13,12 @@ import {
     ImageBackground,
     StyleSheet,
     Image,
-    ScrollView
+    ScrollView,SafeAreaView
     
   } from 'react-native';
   
+
+
 
 
 function SearchScreen() {
@@ -25,8 +27,8 @@ function SearchScreen() {
   
   return (
       
-      <View style={styles.container}>
-        
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
         <View style={styles.searchContainer}>
           
               <View styles={styles.imageContainer} >
@@ -37,7 +39,7 @@ function SearchScreen() {
                         placeholder="Current Location/City"
                         onChangeText={(search)=>setSearch(search)}
                         value={search}
-                        containerStyle={styles.searchBarContainerStyle}
+                        
 
                       />
 
@@ -50,11 +52,17 @@ function SearchScreen() {
         </View>
 
         <View style={styles.adds}>
-         
+
+          <View style={styles.carSlideShow}>
+          
+            <CarSlideShow/>
+          </View>
+       
+
         </View>
 
-
-      </View>
+</ScrollView>
+        </SafeAreaView>
     
     );
   }
@@ -62,10 +70,11 @@ function SearchScreen() {
 
   const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      flexDirection: "column",
-      backgroundColor:"red"
-    },
+      flex:1,
+       
+    
+    
+      },
     image: {
       justifyContent: "center",
       width:"100%",
@@ -76,16 +85,21 @@ function SearchScreen() {
     
       searchContainer: {
         flex:1,
-        backgroundColor: "red",
+         backgroundColor: "gray",
         alignItems:"center"
       
       },
       adds: {
-        flex:1,
-        justifyContent:"center"
+       flex:1,
+        
+        justifyContent:"center",
+        alignItems:"center"
       },
 
       imageContainer:{  
+        
+      },
+      carSlideShow:{
         
       }
     

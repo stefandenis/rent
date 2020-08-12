@@ -46,6 +46,7 @@ function SearchBar(props){
                             textAlign = "auto"
                             fontSize = {17}
                             color="black"
+                            placeholderTextColor = {'rgba(0,0,0,1)'}
                             />
                     </View> 
             </View>
