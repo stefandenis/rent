@@ -2,16 +2,19 @@ import React, {useState, useEffect} from 'react';
 
 import {Text, View, Button, SafeAreaView, ScrollView, StyleSheet,TouchableOpacity} from 'react-native';
 
+import {useNavigation} from '@react-navigation/native';
+function ProfileScreen( {navigation}) {
 
-function ProfileScreen() {
+  
 
   const [count, setCount] = useState(0);
-  useEffect(() => {
-    // Update the document title using the browser API
-    console.log("called")
-  });
+  
 
-    return (
+
+
+
+  
+return (
       <SafeAreaView style={styles.container}>
       <ScrollView>
           <View style={{backgroundColor:"red",height:500}}>

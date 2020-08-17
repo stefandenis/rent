@@ -7,6 +7,10 @@ import {createStackNavigator} from '@react-navigation/stack'
 const image = require('../../images/drive2.jpg')
 const {width, height} = Dimensions.get('window');
 import {useNavigation} from '@react-navigation/native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+
+
 import {
     View,
     Text,
@@ -20,11 +24,11 @@ import {
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 
-function SearchScreen() {
+function SearchScreen({navigation}) {
     
 
-
-  const navigation = useNavigation();
+ 
+ 
   const [search, setSearch] = useState('');
   
 function pressHandler(){
@@ -35,8 +39,9 @@ function pressHandler(){
 
 
   return (
-      
+    
     <SafeAreaView style={styles.container}>
+     
       <ScrollView>
         <View style={styles.searchContainer}>
           
@@ -88,8 +93,9 @@ function pressHandler(){
         </View>
 
 </ScrollView>
+
         </SafeAreaView>
-    
+       
     );
   }
 
@@ -136,7 +142,8 @@ function pressHandler(){
       borderTopRightRadius:width/15,
       marginBottom:20,
       backgroundColor:"rgba(255,255,255,1)",
-      paddingBottom:"2%"
+      paddingBottom:"2%",
+      marginHorizontal:"4%"
     },
     
     sitBackStyle:{

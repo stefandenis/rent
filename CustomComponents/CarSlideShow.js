@@ -12,14 +12,14 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 
 
+
 function CarSlideShow(){
     
     
     const carsExample = [
-        {key:1,stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
-        {key:2,stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
-        {key:3,start:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
-        {key:4,stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')}
+        {key:'1',stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
+        {key:'2',stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
+        {key:'3',start:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
 
     ]
     

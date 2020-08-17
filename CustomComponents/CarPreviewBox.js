@@ -63,7 +63,7 @@ function CarPreviewBox(props){
 
 
 }
-
+    
 
 const styles = StyleSheet.create({
         container: {   
