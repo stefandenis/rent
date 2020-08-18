@@ -4,24 +4,29 @@ import TermsAndConditions from '../../CustomComponents/TermsAndConditions'
 import Icon from 'react-native-vector-icons/Ionicons';
 import {RegisterErrors} from '../../config/RegisterErrors'
 import { Input } from 'react-native-elements';
+import { ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
+import DatePicker from '../../CustomComponents/DatePicker'
+
 
 function RegisterScreen(): JSX.Element{
 
-
+    
     const pwInput = React.createRef();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [birthday, setBirthday] = useState<Date | null>(null);
+    const [birthday, setBirthday] = useState<Date | undefined>(undefined);
     const [isSelected, setSelection] = useState(false); 
     const [openTerms, setOpenTerms] = useState(false);
-    const [emailError, setEmailError] = useState<string | null>(null);
-    const [passError, setPassError] = useState<string | null>(null);
-    const [confPassError, setConfPassError] = useState<string | null>(null);
-    const [isTermsChecked, setIsTermsChecked] = useState<string | null>(null); 
-   
+    const [emailError, setEmailError] = useState<string | undefined>(undefined);
+    const [passError, setPassError] = useState<string | undefined>(undefined);
+    const [confPassError, setConfPassError] = useState<string | undefined>(undefined);
+    const [isTermsChecked, setIsTermsChecked] = useState<string | undefined>(undefined); 
+    const [acceptTerms, setAcceptTerms] = useState(true);
+    const [firstNameError, setFirstNameError] = useState<string | undefined>(undefined);
+    const [lastNameError, setLastNameError] = useState<string | undefined>(undefined);
 
     function _validateEmail(): boolean{
         const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -56,48 +61,69 @@ function RegisterScreen(): JSX.Element{
     function _validateAge(): boolean{
             return true;
     }
+    
+    function _validateFirstName(): boolean{
 
-    function _validateTermsAndCond(): boolean{
-            return true;
-    } 
+      if(firstName.length != 0){
+        return true
+      }else{
+        setFirstNameError(RegisterErrors.nameError);
+        return false;
+      }
 
-   
+    }
+
+    function _validateLastName(): boolean{
+
+      if(lastName.length!=0){
+        return true;
+      }else{
+        setLastNameError(RegisterErrors.nameError);
+        return false
+      }
+    }
+
+    
+
+    function _validateTermsAndCond(): boolean{      
+      setAcceptTerms(isSelected);
+      return isSelected;
+      } 
+
+   function showTermsError(){
+
+      if(!acceptTerms){
+        return(
+          <View style = {{marginBottom:"5%"}}>
+              <Text style = {{color:'red', textAlign:'center',paddingHorizontal:"10%"}}>You must agree with the terms and conditions in order to register.</Text>
+          </View>
+        )
+      }
+  }
 
 
    function _validateFields(){
 
     let result: boolean = true;
-
-    if(!_validateEmail()) result = false;
-    if(!_validateAge()) result = false;
+    if(!_validateFirstName()) result = false;
+    if(!_validateLastName()) result = false;
     if(!_validatePw()) result = false;
-    if(!_validateTermsAndCond()) result = false;
+    if(!_validateEmail()) result = false;
     if(!_pwMatch()) result = false;
-
-    return result;
-
-    
-
+    if(!_validateAge()) result = false;
+    if(!_validateTermsAndCond()) result = false;
+    return result;  
    }
 
     function validateFieldsAndRegister(){
-
-      
+     
         if(_validateFields()){
 
-                //trimite la firebase
-                console.log("okay")
-
-        }else{
-
-           console.log('wrong fields')
-
-            
-        }
+          //trimite la firebase
 
     }
 
-
+  }
 
 
 
@@ -121,25 +147,39 @@ function RegisterScreen(): JSX.Element{
 
         
           <Input  
+           
+            onFocus={()=>{setFirstNameError(undefined)}}
             containerStyle={styles.inputView}
-            inputContainerStyle={{backgroundColor:"white"}}
+            inputContainerStyle={{backgroundColor:"white", borderRadius:30}}
             placeholder="First Name..." 
             placeholderTextColor="rgb(0,0,0)"
             errorStyle={{ color: 'red' }}
+            errorMessage={firstNameError}
             onChangeText={text => setFirstName(text)}/>
         
       
           <Input  
+            onFocus={()=>{setLastNameError(undefined)}}
             containerStyle={styles.inputView}
             placeholder="Last Name..." 
             placeholderTextColor="rgb(0,0,0)"
             errorStyle={{ color: 'red' }}
+            
+            errorMessage={lastNameError}
             onChangeText={text => setLastName(text)}/>
         
-       
+        <Input  
+            containerStyle={styles.inputView}
+            onFocus={()=>{setEmailError(undefined)}}
+            placeholder="Email..." 
+            placeholderTextColor="rgb(0,0,0)"
+            errorStyle={{ color: 'red' }}
+            errorMessage={emailError}
+            
+            onChangeText={text => setEmail(text)}/>
         
           <Input 
-            onFocus={()=>{setPassError(null)}}
+            onFocus={()=>{setPassError(undefined)}}
             
             secureTextEntry
             containerStyle={styles.inputView}
@@ -153,7 +193,7 @@ function RegisterScreen(): JSX.Element{
       
           <Input  
             secureTextEntry
-            onFocus = {()=>{setConfPassError(null)}}
+            onFocus = {()=>{setConfPassError(undefined)}}
             containerStyle={styles.inputView}
             placeholder="Confirm Password..." 
             placeholderTextColor="rgb(0,0,0)"
@@ -161,21 +201,7 @@ function RegisterScreen(): JSX.Element{
             errorMessage={confPassError}
             
             onChangeText={text =>setConfirmPassword(text)}/>
-      
-
-       
-          <Input  
-            containerStyle={styles.inputView}
-            onFocus={()=>{setEmailError(null)}}
-            placeholder="Email..." 
-            placeholderTextColor="rgb(0,0,0)"
-            errorStyle={{ color: 'red' }}
-            errorMessage={emailError}
-            
-            onChangeText={text => setEmail(text)}/>
-       
-
-         
+        
         <View style={styles.checkboxContainer}>
             <CheckBox
             value={isSelected}
@@ -185,15 +211,19 @@ function RegisterScreen(): JSX.Element{
             />
     
             <TouchableOpacity onPress = {()=> {setOpenTerms(true);}}>
-            <Text style={styles.label}>Terms and Conditions</Text>
+            <Text style={styles.label}>I agree with Terms and Conditions</Text>
             </TouchableOpacity>
-
+            
         </View>
+        
+        {showTermsError()}
 
         <TouchableOpacity  style={{...styles.inputView, ...styles.regBtnContainer}} onPress = {()=>{validateFieldsAndRegister()}}>
             <Text style = {styles.txtRegBtn}>Register</Text>
         </TouchableOpacity>
         
+
+
 
         </View>
         
@@ -234,7 +264,7 @@ const styles = StyleSheet.create({
       },
       checkboxContainer: {
         flexDirection: "row",
-        marginBottom: 20,
+        marginBottom: 5,
         backgroundColor:"white",
         borderRadius:25,
       },
