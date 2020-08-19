@@ -119,7 +119,7 @@ function RegisterScreen(): JSX.Element{
      
         if(_validateFields()){
 
-          //trimite la firebase
+          
 
     }
 

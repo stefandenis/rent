@@ -2,13 +2,71 @@ import React, {useEffect, useState}  from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity,ImageBackground, Image,  } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scrollview'
+import auth from '@react-native-firebase/auth';
 
 export default function LogInScreen({navigation}){
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [wrongPassword, setWrongPassword] = useState(false);
+  const [invalidEmail, setInvalidEmail] = useState(false);
+
+  function emailOrPassWrongError(){
+
+    if(wrongPassword){
+      return(
+        <Text style = {{fontSize: 14, color:"red"}}>Wrong Email or Password</Text>
+      )
+    }
+
+
+  }
+
+  function setInvalidEmailError(){
+
+    if(invalidEmail){
+      return(
+        <Text style = {{fontSize: 14, color:"red"}}>Invalid Email!</Text>
+      )
+    }
+
+  }
+
+  function authenticate(){
+    
+
+    auth().signInWithEmailAndPassword(email, password)
+      .then(function(result) {
+              navigation.goBack();
+            })
+      .catch(function(error) {
+      // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorMessage);
+        console.log(errorCode);
+        if (errorCode === 'auth/wrong-password') {
+          console.log("wrong pass")
+          setWrongPassword(true);
+        }
+        if(errorCode === "auth/user-not-found"){
+          console.log('user not found');
+          setWrongPassword(true);
+        }
+        if(errorCode === "auth/invalid-email"){
+          console.log('invalid email');
+          setInvalidEmail(true);
+        }
+      
+    });
   
-    return (
+    
+    
+  
+  
+  }
+  
+  return (
      
       <ImageBackground source={require("../../images/authPhoto.jpg")} style={styles.container}>
        
@@ -36,17 +94,19 @@ export default function LogInScreen({navigation}){
             placeholderTextColor="#FFF"
             onChangeText={text =>setPassword(text)}/>
         </View>
-        
+        {emailOrPassWrongError()}
+        {setInvalidEmailError()}
+
         <TouchableOpacity>
           <Text style={styles.forgot}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginBtn}>
-          <Text style={styles.loginText}>LOGIN</Text>
+        <TouchableOpacity style={styles.loginBtn} onPress={()=>{authenticate()}}>
+          <Text style={styles.loginText}>Log-In</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.signupBtn} onPress = {()=> navigation.navigate("Register")} >
-          <Text style={styles.loginText}>Signup</Text>
+          <Text style={styles.loginText}>Sign-Up</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.fbBtn}>

@@ -51,6 +51,7 @@ function TabNavStackScreen(){
 }
 
 
+
 function AuthenticationNeedStackScreen(){
 
   return(
@@ -89,7 +90,7 @@ const navigation = useNavigation();
     LoggedIn ? (
       <Stack.Navigator>
       <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/>  
-  </Stack.Navigator>
+      </Stack.Navigator>
  
     ):(
       
@@ -97,10 +98,10 @@ const navigation = useNavigation();
         
         <Image source={require("./images/logoR.png")} style={styles.logoImg}/>
         <Text style = {{textAlign:"center",color:"white"}}>You must log-in or sign-up first. You can use your facebook or google account.</Text>
-        <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('AuthenticationNeed')}>
+        <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('LogIn')}>
           <Text style={styles.loginText}>Log In</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.signupBtn} onPress={()=>navigation.navigate('AuthenticationNeed')}>
+        <TouchableOpacity style={styles.signupBtn} onPress={()=>navigation.navigate('LogIn')}>
           <Text style={styles.loginText}>Sign Up</Text>
         </TouchableOpacity>
   
@@ -120,14 +121,16 @@ const ListStack = ()=>(
 const ProfileStack = ({route})=>{
 
   const navigation = useNavigation();
+  const user = auth().currentUser
 
-  var LoggedIn = false
+
+  
   return(
     
-    LoggedIn ? (
+    user ? (
   
   <Stack.Navigator>
-    <Stack.Screen options={{headerShown: false}} name="Profile" component={ProfileScreen}/>  
+    <Stack.Screen options={{headerShown: false}} initialParams = {user} name="Profile" component={ProfileScreen}/>  
   </Stack.Navigator>
     ):(
       
@@ -135,10 +138,10 @@ const ProfileStack = ({route})=>{
         
         <Image source={require("./images/logoR.png")} style={styles.logoImg}/>
         <Text style = {{textAlign:"center",color:"white"}}>You must log-in or sign-up first. You can use your facebook or google account.</Text>
-        <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('AuthenticationNeed')}>
+        <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('LogIn')}>
           <Text style={styles.loginText}>Log In</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.signupBtn} onPress={()=>navigation.navigate('AuthenticationNeed')}>
+        <TouchableOpacity style={styles.signupBtn} onPress={()=>navigation.navigate('LogIn')}>
           <Text style={styles.loginText}>Sign Up</Text>
         </TouchableOpacity>
   
@@ -215,37 +218,38 @@ function Logo(props){
 
 function App(){
 
+  const user = auth().currentUser
+  
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  
 
   
-  const [loggedIn, setLoggedIn] = useState(true);
-  const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState();
 
- 
-  auth()
-  .createUserWithEmailAndPassword('wizzard00d3@yahoo.com', 'SuperSecretPassword!')
-  .then(() => {
-    console.log('User account created & signed in!');
-  })
-  .catch(error => {
-    if (error.code === 'auth/email-already-in-use') {
-      console.log('That email address is already in use!');
-    }
+  
 
-    if (error.code === 'auth/invalid-email') {
-      console.log('That email address is invalid!');
-    }
+  // auth().onAuthStateChanged(function(user) {
+  //   if (user) {
+  //     if (user.emailVerified === false) {
+  //       console.log('Email not verified')
+  //     } else {
 
-    console.error(error);
-  });
+  //       // successful login 
+
+  //     }
+  //   } else {
+  //     //  Toast.show({ text: 'Something Wrong!', position: 'bottom', buttonText: 'No user is signed in.' }); 
+  //   }
+  // });
+
 
   return(
       <NavigationContainer>
           <RootStack.Navigator mode="modal" >
               <RootStack.Screen options={{headerShown: false}} name="TabNav"  component={TabNavStackScreen} />
-              <RootStack.Screen options={{headerShown: false}} name="AuthenticationNeed" component={AuthenticationNeedStackScreen} />
+              <RootStack.Screen options={{headerShown: false}} name="LogIn" component={LogInScreen}/> 
               <RootStack.Screen name="Test" options = {({ route }) =>{
-        return({           
+                return({           
       
               headerStyle:{
               backgroundColor:'rgb(138,199,253)'
