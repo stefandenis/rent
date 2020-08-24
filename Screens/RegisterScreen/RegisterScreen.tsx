@@ -6,9 +6,10 @@ import {RegisterErrors} from '../../config/RegisterErrors'
 import { Input } from 'react-native-elements';
 import { ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
 import DatePicker from '../../CustomComponents/DatePicker'
+import auth from '@react-native-firebase/auth';
+import { NavigationHelpersContext } from '@react-navigation/native';
 
-
-function RegisterScreen(): JSX.Element{
+function RegisterScreen({navigation}): JSX.Element{
 
     
     const pwInput = React.createRef();
@@ -102,7 +103,7 @@ function RegisterScreen(): JSX.Element{
   }
 
 
-   function _validateFields(){
+   function _validateFields(): boolean{
 
     let result: boolean = true;
     if(!_validateFirstName()) result = false;
@@ -118,14 +119,34 @@ function RegisterScreen(): JSX.Element{
     function validateFieldsAndRegister(){
      
         if(_validateFields()){
-
+          
+          auth().createUserWithEmailAndPassword(email, password)
+            .then((userCredentials)=>{
+              if(userCredentials.user){
+                userCredentials.user.updateProfile({
+                  displayName: firstName
+                }).then((s)=> {
+                  userCredentials.user.sendEmailVerification();
+                  console.log(firstName)
+                  console.log(email)
+                  navigation.navigate('EmailVerification', {firstName:firstName, email:email, onEmailVerification: ()=>{navigation.navigate('Profile')}});
+                })
+              }
+            })
+            .catch(function(error) {
+              // Handle Errors here.
+              var errorCode = error.code;
+              var errorMessage = error.message;
+              console.log(errorMessage);
+              console.log(errorCode);
+            });
           
 
     }
 
   }
 
-
+  
 
 
 

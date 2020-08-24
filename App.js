@@ -8,7 +8,7 @@
 
 
 
-import React, { useState, Component, useEffect } from 'react';
+import React, { useState, Component, useEffect, useContext } from 'react';
 import { NavigationContainer, StackActions } from '@react-navigation/native';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -24,10 +24,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LogInScreen from './Screens/LogInScreen/LogInScreen'
 import RegisterScreen from './Screens/RegisterScreen/RegisterScreen'
 import {useNavigation} from '@react-navigation/native';
-
+import HeaderPreview from './CustomComponents/HeaderPreview'
 import {StatusBar, Modal} from 'react-native';
-
+import {useSession} from './CustomHooks/useSession'
 import auth from '@react-native-firebase/auth';
+import {useAuth} from './CustomHooks/useAuth'
+import EmailVerificationScreen from './Screens/EmailVerificationScreen/EmailVerificationScreen'
+import {userContext} from './context/user.context'
 
 StatusBar.setBackgroundColor("rgba(0,0,0,0)")
 StatusBar.setBarStyle("light-content")
@@ -38,6 +41,49 @@ const TabNavStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const AuthenticationNeedStack = createStackNavigator();
 const RootStack = createStackNavigator();
+
+const UserProvider = userContext.Provider;
+const UserConsumer = userContext.Consumer;
+
+
+function onAuthStateChange(callback) {
+  
+
+  /*
+  Cand se inregistreaza user-ul este si logat si atunci se intra in functia asta. 
+  Si cu toate ca a verificat email-ul.. o sa ii apara view-ul cu notificarea cum ca 
+  i-a fost trimis un link de verificare. onAuthStateChange este invocata doar atunci cand
+  userul da sign in sau sign out. Ca sa updateze campurile user-ului (inclusiv emailVerified ) trebuie sa fie apelata 
+  functia reload()
+
+
+  */
+  
+
+  return auth().onAuthStateChanged(user => {
+    
+    if (user) {
+       auth().currentUser.reload().then(()=>{    
+        console.log("The user is logged after reload: ", auth().currentUser);
+        callback(auth().currentUser);
+      })
+      
+    
+
+      
+   
+    } else {
+      console.log("The user is not logged in");
+      callback(user)
+  
+    }
+  });
+
+  
+
+}
+
+
 
 function TabNavStackScreen(){
 
@@ -52,26 +98,13 @@ function TabNavStackScreen(){
 
 
 
-function AuthenticationNeedStackScreen(){
 
-  return(
-      <AuthenticationNeedStack.Navigator >  
-          <AuthenticationNeedStack.Screen options={{headerShown: false}} name="LogIn" component={LogInScreen}/>
-      </AuthenticationNeedStack.Navigator>
-
-
-  )
-}
 
 
 
 const SearchStack = () =>(
   <Stack.Navigator>
       <Stack.Screen options={{headerShown: false}} name="Search" component={SearchScreen}/>  
-     
-      <Stack.Screen name="RentList" component={RentListScreen}/>
-      <Stack.Screen name="LogIn" component = {LogInScreen}/>
-  
   </Stack.Navigator>
 
 )
@@ -81,13 +114,13 @@ const MessagesStack = ()=>{
 
 
 
-
+const {user, refreshUser }= useContext(userContext);
 const navigation = useNavigation();
-  var LoggedIn = false;
+  
   
   return(
     
-    LoggedIn ? (
+    user ? (
       <Stack.Navigator>
       <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/>  
       </Stack.Navigator>
@@ -120,22 +153,37 @@ const ListStack = ()=>(
 
 const ProfileStack = ({route})=>{
 
+  const {user, refreshUser} = useContext(userContext);
   const navigation = useNavigation();
-  const user = auth().currentUser
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false)
 
 
-  
-  return(
+  async function re_render(isEmailVerified){
+    console.log('isEmaiVerified in re_render function: ', isEmailVerified)
+    setEmailVerified(isEmailVerified);
+    await auth().currentUser.reload();
     
-    user ? (
-  
-  <Stack.Navigator>
-    <Stack.Screen options={{headerShown: false}} initialParams = {user} name="Profile" component={ProfileScreen}/>  
-  </Stack.Navigator>
-    ):(
-      
+  } 
+  console.log(user)
+  if(user){
+  console.log("user email verified in profile stack:", user.emailVerified)}
+  if(user){
+
+      if(user.emailVerified || emailVerified){
+        return(
+        <Stack.Navigator>
+        <Stack.Screen options={{headerShown: false}} initialParams = {user} name="Profile" component={ProfileScreen}/>  
+      </Stack.Navigator>
+        )
+      }else{
+        return(<EmailVerificationScreen name = {user.displayName} email = {user.email} onEmailVerification={(isEmailVerified)=>{re_render(isEmailVerified)}}/>)
+      }
+
+  }
+  else{
+    return(
       <View style = {{flex:1, alignItems: "center", justifyContent:"center",backgroundColor:"black"}}>
-        
         <Image source={require("./images/logoR.png")} style={styles.logoImg}/>
         <Text style = {{textAlign:"center",color:"white"}}>You must log-in or sign-up first. You can use your facebook or google account.</Text>
         <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('LogIn')}>
@@ -146,9 +194,9 @@ const ProfileStack = ({route})=>{
         </TouchableOpacity>
   
       </View>
-      
-
-    ))
+    )
+  }
+  
   
     }
 
@@ -202,68 +250,56 @@ return(
 }
 
 
-function Logo(props){
-  
-  return(
-  
-    <View style={{flex:1, flexDirection:"row",alignItems:"center"}}>
-      <Text style={{fontSize:20, marginRight:"auto"}}>{props.name}</Text>
-    <View style={{position:"absolute",right:0}}>
-    <Image  source={require('./images/logoR.png')} style = {{height:50, width:50}} />
-    </View>
-    </View>
-  )
-}
+
+
 
 
 function App(){
-
-  const user = auth().currentUser
-  
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [initializing, setInitializing] = useState(true);
+ 
+ 
+  const [user, setUser] = useState()
   
 
-  
+  useEffect(()=>{
+    const subscribe = onAuthStateChange(setUser)
 
-  
+    return ()=>{
+      subscribe();
+    }
+  },[])
 
-  // auth().onAuthStateChanged(function(user) {
-  //   if (user) {
-  //     if (user.emailVerified === false) {
-  //       console.log('Email not verified')
-  //     } else {
+  console.log(user)
 
-  //       // successful login 
-
-  //     }
-  //   } else {
-  //     //  Toast.show({ text: 'Something Wrong!', position: 'bottom', buttonText: 'No user is signed in.' }); 
-  //   }
-  // });
-
+  function refreshUser(){
+      setUser(auth().currentUser)
+      console.log("utilizatorul a fost refreshuit")
+  }
 
   return(
+    <UserProvider value={{user, refreshUser}}>
       <NavigationContainer>
           <RootStack.Navigator mode="modal" >
               <RootStack.Screen options={{headerShown: false}} name="TabNav"  component={TabNavStackScreen} />
               <RootStack.Screen options={{headerShown: false}} name="LogIn" component={LogInScreen}/> 
               <RootStack.Screen name="Test" options = {({ route }) =>{
+
                 return({           
       
-              headerStyle:{
-              backgroundColor:'rgb(138,199,253)'
+                  headerStyle:{
+                  backgroundColor:'rgb(138,199,253)'
               
             },
-            headerTitle: (props) => <Logo name={route.params.carName} {...props} />,
+            headerTitle: (props) => <HeaderPreview name={route.params.carName} {...props} />,
           }
         
         
         )}} component={TestScreen} />
           <RootStack.Screen options={{headerShown: false}} name = "Register" component = {RegisterScreen}/>
+          <RootStack.Screen options = {{headerShown: false }} name = "EmailVerification" component = {EmailVerificationScreen}/>
           </RootStack.Navigator>
 
     </NavigationContainer>
+    </UserProvider>
 
   );
 

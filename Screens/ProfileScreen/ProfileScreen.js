@@ -8,29 +8,29 @@ function ProfileScreen( {route,navigation}) {
   
   const user = auth().currentUser
   const [count, setCount] = useState(0);
-  
+  const [emailVerified, setEmailVerified] = useState(false);
+
 
 
 
 
   
 return (
-      <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <View style = {styles.container}>  
         <Text>{user.email}</Text>
-    
+        <Text>{user.displayName}</Text>
         <TouchableOpacity onPress = {()=>{auth().signOut(); console.log("user has signed out"); navigation.navigate('Search')  }}>
           <Text>Sign out</Text>
         </TouchableOpacity>
-    
-    </ScrollView>
-        </SafeAreaView>
+        </View> 
     );
   }
 
 const styles = StyleSheet.create({
   container:{
-    flex:1
+    flex:1,
+    alignItems:"center",
+    justifyContent:"center"
 
   }
 })

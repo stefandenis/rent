@@ -40,7 +40,8 @@ function getDays(){
         if(i<10){
             days.push('0'+i.toString());
         }else{
-            days.push(i.toString());        }
+            days.push(i.toString());       
+        }
 
     }
     return days;
