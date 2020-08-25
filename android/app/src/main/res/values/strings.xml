@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">RENT</string>
+    <string name="facebook_app_id">626604028045257</string>
+    <string name="fb_login_protocol_scheme">fb626604028045257</string>
 </resources>

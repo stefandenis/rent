@@ -113,22 +113,41 @@ const SearchStack = () =>(
 const MessagesStack = ()=>{
 
 
+  const {user, refreshUser} = useContext(userContext);
+  const navigation = useNavigation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false)
 
-const {user, refreshUser }= useContext(userContext);
-const navigation = useNavigation();
-  
-  
-  return(
+
+  async function re_render(isEmailVerified){
+    console.log('isEmaiVerified in re_render function: ', isEmailVerified)
+    setEmailVerified(isEmailVerified);
+    await auth().currentUser.reload();
     
-    user ? (
-      <Stack.Navigator>
-      <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/>  
-      </Stack.Navigator>
- 
-    ):(
+  } 
+  console.log(user)
+
+  if(user){
+  console.log("user email verified in profile stack:", user.emailVerified)}
+  if(user){
+
+      if(user.emailVerified || emailVerified || user.providerData[0].providerId == 'facebook.com'){
+        return(
+          <Stack.Navigator>
+          <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/>  
+          </Stack.Navigator>
+        )
+  
+        }    
       
+      else{
+        return(<EmailVerificationScreen name = {user.displayName} email = {user.email} onEmailVerification={(isEmailVerified)=>{re_render(isEmailVerified)}}/>)
+      }
+
+  }
+  else{
+    return(
       <View style = {{flex:1, alignItems: "center", justifyContent:"center",backgroundColor:"black"}}>
-        
         <Image source={require("./images/logoR.png")} style={styles.logoImg}/>
         <Text style = {{textAlign:"center",color:"white"}}>You must log-in or sign-up first. You can use your facebook or google account.</Text>
         <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('LogIn')}>
@@ -139,10 +158,12 @@ const navigation = useNavigation();
         </TouchableOpacity>
   
       </View>
-      
-
-    ))
+    )
+  }
+  
     }
+
+    
 
 const ListStack = ()=>(
 
@@ -166,17 +187,21 @@ const ProfileStack = ({route})=>{
     
   } 
   console.log(user)
+
   if(user){
   console.log("user email verified in profile stack:", user.emailVerified)}
   if(user){
 
-      if(user.emailVerified || emailVerified){
+      if(user.emailVerified || emailVerified || user.providerData[0].providerId == 'facebook.com'){
         return(
         <Stack.Navigator>
         <Stack.Screen options={{headerShown: false}} initialParams = {user} name="Profile" component={ProfileScreen}/>  
       </Stack.Navigator>
         )
-      }else{
+  
+        }    
+      
+      else{
         return(<EmailVerificationScreen name = {user.displayName} email = {user.email} onEmailVerification={(isEmailVerified)=>{re_render(isEmailVerified)}}/>)
       }
 
