@@ -60,7 +60,9 @@
             "available":"true/false",
             "seats":"4",
             "casco":"da/nu",
-            "etc":"..."
+            "etc":"...",
+            "latitude":"...",
+            "longitude":"..."
 
         },
         "id_car2": {
@@ -70,7 +72,9 @@
             "available":"true/false",
             "seats":"4",
             "casco":"da/nu",
-            "etc":"..."
+            "etc":"...",
+            "latitude":"...",
+            "longitude":"..."
 
         }
 
