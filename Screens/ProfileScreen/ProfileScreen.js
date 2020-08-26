@@ -13,12 +13,14 @@ import {
   Dimensions,
   TouchableNativeFeedback,
   Platform,
-  Animated
+  Animated,
+  TextInput
   } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { Hoshi } from 'react-native-textinput-effects';
+import { Input } from 'react-native-elements';
 const {width, height} = Dimensions.get('window');
 
 function ProfileScreen( {route,navigation}) {
@@ -32,6 +34,8 @@ function ProfileScreen( {route,navigation}) {
   const [photoSource, setPhotoSource] = useState('../../images/noPhotoURL.png');
   const leftMarginSettings = useState(new Animated.Value(0))[0]
   const leftMarginSettingsScreen = useState(new Animated.Value(1000))[0]
+  const leftMarginChangeNameScreen = useState(new Animated.Value(1000))[0]
+  const [firstName, setFirstName] = useState('')
 
 useEffect(()=>{
 
@@ -77,6 +81,88 @@ function goBackToProfile(){
  
 }
 
+function displayPhoneNumber(){
+  if(user.phoneNumber){
+    return(<Text style = {{fontSize:10, color:"gray"}}>user.phoneNumber</Text>)
+  }else{
+    return(<Text style = {{fontSize:10, color:"gray"}}>no phone number</Text>)
+  }
+  
+}
+
+
+function changeNameForm(){
+  Animated.timing(leftMarginSettingsScreen,{
+    toValue:-1000,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+  Animated.timing(leftMarginChangeNameScreen,{
+    
+    toValue:0,
+    Duration:1000,
+    useNativeDriver:false,
+
+
+  }).start()
+
+}
+
+function changePasswordForm(){
+
+}
+
+function changeEmailForm(){
+
+}
+
+function changeProfilePictureForm(){
+
+}
+
+function changePhoneNumberForm(){
+
+}
+
+function deleteAccount(){
+
+}
+
+function goBackToSettings(){
+  
+  Animated.timing(leftMarginChangeNameScreen,{
+    
+    toValue:1000,
+    Duration:1000,
+    useNativeDriver:false,
+
+
+  }).start()
+  
+  Animated.timing(leftMarginSettingsScreen,{
+    toValue:0,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+  
+
+}
+
+
+function changeName(){
+
+  auth().currentUser.updateProfile({
+    displayName: firstName
+  })
+    .then(()=>{
+        auth().currentUser.reload()
+    }).catch(()=>{console.log('the name could not be updated')})
+
+
+}
+
 console.log(user.photoURL)
 
   
@@ -90,7 +176,9 @@ return (
         </View>
         
 
+
       <Animated.View style = {{...styles.animatedStyle, marginLeft:leftMarginSettings }}>
+        
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
         onPress={()=>{slideToSettings()}}
@@ -175,13 +263,14 @@ return (
 
       {/* SETTINGS SCREEN SLIDE */}
       <Animated.View style = {{...styles.settingsContainer, left:leftMarginSettingsScreen}}>
-      <TouchableOpacity style ={{position:'absolute', left:"10%",top:"15%"}} onPress={()=>{goBackToProfile()}}>
+      <TouchableOpacity style ={{position:'absolute', left:"10%",top:"5%"}} onPress={()=>{goBackToProfile()}}>
               <Icon name='arrow-back' size={height/22} color='gray' />
       </TouchableOpacity>
-
+      
+      <View style = {styles.limiter}></View>
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
-        onPress={()=>{auth().signOut(); navigation.navigate('Search')}}
+        onPress={()=>{changeNameForm()}}
         background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
         <View style = {styles.touchable}>
           <Text style = {styles.textStyle}>Change name</Text>
@@ -194,7 +283,7 @@ return (
       
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
-        onPress={()=>{auth().signOut(); navigation.navigate('Search')}}
+        onPress={()=>{changeEmailForm()}}
         background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
         <View style = {styles.touchable}>
           <Text style = {styles.textStyle}>Change email</Text>
@@ -207,7 +296,7 @@ return (
 
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
-        onPress={()=>{auth().signOut(); navigation.navigate('Search')}}
+        onPress={()=>{changePasswordForm()}}
         background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
         <View style = {styles.touchable}>
           <Text style = {styles.textStyle}>Change password</Text>
@@ -220,23 +309,77 @@ return (
 
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
-        onPress={()=>{auth().signOut(); navigation.navigate('Search')}}
+        onPress={()=>{changeProfilePictureForm()}}
         background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
         <View style = {styles.touchable}>
-          <Text style = {styles.textStyle}>Confirm Email</Text>
+          <Text style = {styles.textStyle}>Change Profile Picture</Text>
           <View style = {styles.iconContainer}>
             {/* TODO: LOGIC FOR VERIFYNG IF IT IS CONFIRMED OR NOT */}
-            <Icon name='checkmark-circle' size={height/22} color='green' />
+            <Icon name='image' size={height/22} color='gray' />
           </View>
         </View>
       </TouchableNativeFeedback>
       <View style = {styles.limiter}></View>
-  
+
+      <View style = {styles.limiter}></View>
+      <TouchableNativeFeedback
+        onPress={()=>{changePhoneNumberForm()}}
+        background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
+        <View style = {styles.touchable}>
+          <Text style = {styles.textStyle}>Phone Number</Text>
+          <View style = {styles.iconContainer}>
+            
+            {displayPhoneNumber()}
+          </View>
+        </View>
+      </TouchableNativeFeedback>
+      <View style = {styles.limiter}></View>
+
+      <View style = {styles.limiter}></View>
+      <TouchableNativeFeedback
+        onPress={()=>{deleteAccount()}}
+        background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
+        <View style = {styles.touchable}>
+          <Text style = {styles.textStyle}>Delete Account</Text>
+        </View>
+      </TouchableNativeFeedback>
+      <View style = {styles.limiter}></View>
+      <View style = {styles.limiter}></View>
     
       </Animated.View>
       
       
-      
+      <Animated.View style = {{...styles.settingsContainer, left:leftMarginChangeNameScreen}} >
+      <TouchableOpacity style ={{position:'absolute', left:"10%",top:"5%"}} onPress={()=>{goBackToSettings()}}>
+              <Icon name='arrow-back' size={height/22} color='gray' />
+      </TouchableOpacity>
+
+        <View style = {styles.changeNameFormContainer}>
+            <TextInput  
+           
+          
+           containerStyle={styles.inputView}
+           inputContainerStyle={{backgroundColor:"white"}}
+           placeholder="First Name..." 
+           placeholderTextColor="rgb(0,0,0)"
+          
+           
+           onChangeText={text => setFirstName(text)}/>
+       
+           
+          
+        </View>
+        <TouchableOpacity onPress={()=>{changeName()}}>
+          <View>
+            <Text>saluatre schimba numele</Text>
+          </View>
+          </TouchableOpacity>
+      </Animated.View>
+
+
+
+
+
       
       
       
@@ -343,7 +486,22 @@ const styles = StyleSheet.create({
       alignItems:"center"
       
      
-    }
+    }, 
+    changeNameFormContainer:{
+      alignItems:"center",
+      justifyContent:"center"
+    },
+    inputView:{
+      width:width/1.5,
+      backgroundColor:"white",
+      borderRadius:25,
+      height:"7%",
+      marginBottom:20,
+      justifyContent:"center",
+      
+      
+      
+    },
   
   
 })

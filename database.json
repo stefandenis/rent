@@ -1,0 +1,90 @@
+{
+    "users":{
+
+        "$uid1": {
+            "name": "....",
+            "email": "...",
+            "photoURL":"....",
+            "listedCars":["idcar1"],
+            "tripHistory":["idtrip1", "....", "idtrip2"]
+
+
+        },
+        "$uid2": {
+            "name": "....",
+            "email": "...",
+            "photoURL":"....",
+            "listedCars":["idcar1", "idcar2", "..."],
+            "tripHistory":["idtrip1", "....", "idtrip2"]
+
+
+        }
+    },
+        
+    "trips": {
+
+        "idtrip1": { 
+            "theOneWhoListed": "$uid1",
+            "theOneWhoRented": "$uid2",
+            "startRentDate": "...",
+            "endRentDate":"...",
+            "car": "id_car"
+
+        },
+
+        "idtrip2": {
+            "theOneWhoListed": "$uid2",
+            "theOneWhoRented": "$uid1",
+            "startRentDate": "...",
+            "endRentDate":"...",
+            "car": "id_car"
+        },
+
+        "idtrip3": {
+            "theOneWhoListed": "$uid1",
+            "theOneWhoRented": "$uid2",
+            "startRentDate": "...",
+            "endRentDate":"...",
+            "car": "id_car"
+        }
+
+    },
+
+
+    "listedCars":{
+        
+        "id_car": {
+            "model": "modelmasina",
+            "motor": "diesel",
+            "transmission": "manual",
+            "available":"true/false",
+            "seats":"4",
+            "casco":"da/nu",
+            "etc":"..."
+
+        },
+        "id_car2": {
+            "model": "modelmasina",
+            "motor": "benzina",
+            "transmission": "automatic",
+            "available":"true/false",
+            "seats":"4",
+            "casco":"da/nu",
+            "etc":"..."
+
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+    
+
+
+}

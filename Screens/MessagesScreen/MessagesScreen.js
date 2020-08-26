@@ -5,16 +5,34 @@ import {
     Dimensions
   } from 'react-native';
 
-  import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
-  const {width, height} = Dimensions.get('window');
+import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
+import { TouchableOpacity } from 'react-native-gesture-handler';
+const {width, height} = Dimensions.get('window');
+import database from '@react-native-firebase/database'
+
+
 
 
 function MessagesScreen() {
-    return (
+
+
+const reference = database().ref('/users/123');
+
+const insert = ()=>{
+
+
+
+
+}
+
+  return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor:'green' }}>
        
-        <CarPreviewBox source={require('../../images/lambo.jpg')}/>
+        <TouchableOpacity onPress = {insert}>
           
+            <Text style = {{backgroundColor:"red"}}> Insereaza in baza de date</Text>
+          
+        </TouchableOpacity>
         
       </View>
     );
