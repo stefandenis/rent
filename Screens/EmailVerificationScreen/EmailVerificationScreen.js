@@ -3,6 +3,7 @@ import { StyleSheet,View, Text, Image, TouchableOpacity, ScrollView,SafeAreaView
 import auth from '@react-native-firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import {userContext} from '../../context/user.context'
+import  database  from '@react-native-firebase/database';
 
 
 
@@ -40,7 +41,26 @@ export default function EmailVerificationScreen({route, name, email, onEmailVeri
    
 
     function sendEmailVerifiedToParent(isEmailVerified){
+        const user = auth().currentUser
+        if(isEmailVerified){
+            
+            database().ref(`/users/${user.uid}`).set({
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+                phoneNumber: user.phoneNumber,
+                
+
+
+
+            })
+            
+            
+        
+        }
+        
         if(route){
+            
             route.params.onEmailVerification();
        
         }else{
@@ -66,7 +86,11 @@ export default function EmailVerificationScreen({route, name, email, onEmailVeri
     }
 
 
-    
+    function registerUserInDatabase(){
+
+
+
+    }
 
     async function confirmEmailVerified(){
         await auth().currentUser.reload();

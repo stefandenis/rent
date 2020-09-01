@@ -2,9 +2,10 @@
     "users":{
 
         "$uid1": {
-            "name": "....",
+            "displayName": "....",
             "email": "...",
             "photoURL":"....",
+            "phoneNumber": "...",
             "listedCars":["idcar1"],
             "tripHistory":["idtrip1", "....", "idtrip2"]
 

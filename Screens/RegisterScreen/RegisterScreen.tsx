@@ -9,6 +9,7 @@ import DatePicker from '../../CustomComponents/DatePicker'
 import auth from '@react-native-firebase/auth';
 import { NavigationHelpersContext } from '@react-navigation/native';
 
+
 function RegisterScreen({navigation}): JSX.Element{
 
     
@@ -124,7 +125,7 @@ function RegisterScreen({navigation}): JSX.Element{
             .then((userCredentials)=>{
               if(userCredentials.user){
                 userCredentials.user.updateProfile({
-                  displayName: firstName
+                  displayName: `${firstName} ${lastName}`
                 }).then((s)=> {
                   userCredentials.user.sendEmailVerification();
                   console.log(firstName)

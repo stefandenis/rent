@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-
+import TermsAndConditions from '../../CustomComponents/TermsAndConditions'
 import {
   Text, 
   View, 
@@ -14,42 +14,92 @@ import {
   TouchableNativeFeedback,
   Platform,
   Animated,
-  TextInput
+  TextInput,
+  ProgressBarAndroid,
+  Alert
   } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Hoshi } from 'react-native-textinput-effects';
 import { Input } from 'react-native-elements';
+import { utils } from '@react-native-firebase/app';
+import storage from '@react-native-firebase/storage';
+import ImagePicker from 'react-native-image-picker';
 const {width, height} = Dimensions.get('window');
+import database from '@react-native-firebase/database'
+import * as Progress from 'react-native-progress';
+import PhoneNumber from '../../CustomComponents/PhoneNumber'
+import ChangePassword from '../../CustomComponents/ChangePassword'
+import PrivacyPolicy from '../../CustomComponents/PrivacyPolicy'
+
 
 function ProfileScreen( {route,navigation}) {
-
+  const noProfileURL = require('../../images/noPhotoURL.png')
   const rippleOverflow = false;
   const rippleColor = 'gray'
   const user = auth().currentUser
   const [count, setCount] = useState(0);
   const [emailVerified, setEmailVerified] = useState(false);
   
-  const [photoSource, setPhotoSource] = useState('../../images/noPhotoURL.png');
+  const [photoSource, setPhotoSource] = useState();
   const leftMarginSettings = useState(new Animated.Value(0))[0]
   const leftMarginSettingsScreen = useState(new Animated.Value(1000))[0]
   const leftMarginChangeNameScreen = useState(new Animated.Value(1000))[0]
+  const leftMarginChangeProfilePictureScreen = useState(new Animated.Value(1000))[0]
+  const leftMarginPhoneNumberScreen = useState(new Animated.Value(1000))[0]
+  const leftMarginChangePasswordScreen = useState(new Animated.Value(1000))[0]
   const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [image, setImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [transferred, setTransferred] = useState(0);
+  const [disabledUpload, setDisableUpload] = useState(true)
+  const [buttonColor, setButonColor] = useState('gray')
+  const [openTerms, setOpenTerms] = useState(false);
+  const [openPrivacyPolicy, setOpenPrivacyPolicy] = useState(false)
+
 
 useEffect(()=>{
 
-  if(user.photoURL){
-
-    if(user.providerData[0].providerId=='facebook.com')
-    setPhotoSource(`${user.photoURL}?type=large`) 
-  }
-
-
-
-}, [photoSource])
-
+  const uid = auth().currentUser.uid
+  console.log(user.photoURL)
   
+
+  database()
+        .ref(`/users/${uid}/`)
+        .on('value', snapshot=>{
+          console.log('am intrat in on value')
+          console.log('User data: ', snapshot.val());
+          const displayName_firstName = snapshot.val().displayName.split(' ')[0]
+          const displayName_lastName = snapshot.val().displayName.split(' ')[1]
+          const photoURL = snapshot.val().photoURL
+          const phoneNumber = snapshot.val().phoneNumber
+          if(photoURL){
+            if(photoURL.includes('facebook')){
+              setPhotoSource({uri:`${photoURL}?type=large`})
+            }else{
+              setPhotoSource({uri:`${photoURL}`})
+            }
+          }else{
+            setPhotoSource(noProfileURL)
+          }
+          
+          displayName_lastName ? setLastName(displayName_lastName) : setLastName('')
+          displayName_firstName ? setFirstName(displayName_firstName) : setFirstName('')
+          
+          phoneNumber ? setPhoneNumber(phoneNumber) : setPhoneNumber('no phone number') 
+        
+        })
+        
+
+
+
+}, [])
+
+
+
 function slideToSettings(){
 
   Animated.timing(leftMarginSettings,{
@@ -77,16 +127,12 @@ function goBackToProfile(){
     duration:1000,
     useNativeDriver:false
   }).start()
-
- 
 }
 
 function displayPhoneNumber(){
-  if(user.phoneNumber){
-    return(<Text style = {{fontSize:10, color:"gray"}}>user.phoneNumber</Text>)
-  }else{
-    return(<Text style = {{fontSize:10, color:"gray"}}>no phone number</Text>)
-  }
+  
+  return(<Text style = {{fontSize:10, color:"gray"}}>{phoneNumber}</Text>)
+  
   
 }
 
@@ -111,6 +157,21 @@ function changeNameForm(){
 
 function changePasswordForm(){
 
+  Animated.timing(leftMarginSettingsScreen,{
+    toValue:-1000,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+  Animated.timing(leftMarginChangePasswordScreen,{
+    
+    toValue:0,
+    Duration:1000,
+    useNativeDriver:false,
+
+
+  }).start()
+
 }
 
 function changeEmailForm(){
@@ -118,10 +179,42 @@ function changeEmailForm(){
 }
 
 function changeProfilePictureForm(){
+  
+  Animated.timing(leftMarginSettingsScreen,{
+    toValue:-1000,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+  Animated.timing(leftMarginChangeProfilePictureScreen,{
+    
+    toValue:0,
+    Duration:1000,
+    useNativeDriver:false,
+
+
+  }).start()
 
 }
 
 function changePhoneNumberForm(){
+
+  Animated.timing(leftMarginSettingsScreen,{
+    toValue:-1000,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+  Animated.timing(leftMarginPhoneNumberScreen,{
+    
+    toValue:0,
+    Duration:1000,
+    useNativeDriver:false,
+
+
+  }).start()
+
+
 
 }
 
@@ -130,7 +223,7 @@ function deleteAccount(){
 }
 
 function goBackToSettings(){
-  
+
   Animated.timing(leftMarginChangeNameScreen,{
     
     toValue:1000,
@@ -139,7 +232,30 @@ function goBackToSettings(){
 
 
   }).start()
+
+  Animated.timing(leftMarginChangeProfilePictureScreen,{
+    
+    toValue:1000,
+    Duration:1000,
+    useNativeDriver:false,
+
+
+  }).start()
   
+  Animated.timing(leftMarginPhoneNumberScreen,{
+    toValue:1000,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+  Animated.timing(leftMarginChangePasswordScreen,{
+    toValue:1000,
+    Duration:1000,
+    useNativeDriver:false
+  }).start()
+
+
+
   Animated.timing(leftMarginSettingsScreen,{
     toValue:0,
     Duration:1000,
@@ -147,23 +263,118 @@ function goBackToSettings(){
   }).start()
 
   
+  
 
 }
 
 
-function changeName(){
+ function changeName(){
 
-  auth().currentUser.updateProfile({
+  
+  const update = {}
+  
+   auth().currentUser.updateProfile({
     displayName: firstName
   })
     .then(()=>{
-        auth().currentUser.reload()
+      console.log('in update  profile')
+        auth().currentUser.reload().then(()=>{
+          console.log('in reload  profiel')
+          console.log(user.displayName)
+          update[`/users/${user.uid}/displayName`] = `${firstName} ${lastName}`
+         
+          
+          database().ref().update(update).then(()=>{console.log('done')})
+        })
+        
     }).catch(()=>{console.log('the name could not be updated')})
+
+
+    
 
 
 }
 
-console.log(user.photoURL)
+
+function changeProfilePicture(){
+
+  const options = {
+    maxWidth: 2000,
+    maxHeight: 2000,
+    storageOptions: {
+      skipBackup: true,
+      path: 'images'
+    }
+  };
+  ImagePicker.showImagePicker(options, response => {
+    if (response.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (response.error) {
+      console.log('ImagePicker Error: ', response.error);
+    } else if (response.customButton) {
+      console.log('User tapped custom button: ', response.customButton);
+    } else {
+      const source = { uri: response.uri };
+      console.log(source);
+      setImage(source);
+      setButonColor("rgba(90,128,232,0.8)")
+      setDisableUpload(false)
+    }
+  });
+
+
+  
+
+}
+
+async function uploadImage(){
+  const update = {}
+  const { uri } = image;
+  const filePath = `${user.uid}/profilePicture`
+  
+  const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+    
+  setUploading(true);
+  setTransferred(0);
+  
+  const task = storage()
+  .ref(filePath)
+  .putFile(uploadUri);
+// set progress state
+  task.on('state_changed', snapshot => {
+  setTransferred(
+    Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
+  );
+  })
+
+  try {
+    await task;
+  } catch (e) {
+    console.error(e);
+  }
+
+  setUploading(false);
+  Alert.alert(
+    'Photo uploaded!',
+    
+  );
+  setImage(null);
+  setButonColor("gray")
+  setDisableUpload(true)
+
+  update[`/users/${user.uid}/photoURL`] = await storage()
+    .ref(filePath)
+    .getDownloadURL();   
+  database().ref().update(update)
+  auth().currentUser.updateProfile({
+    photoURL: update[`/users/${user.uid}/photoURL`] 
+  }).then(()=>{ setPhotoSource({uri:update[`/users/${user.uid}/photoURL`]})})
+ 
+  
+
+}
+
+
 
   
 return (
@@ -172,10 +383,11 @@ return (
      
       <View style = {styles.infoContainer}> 
         <View style = {styles.profilePicBorder}>
-          <Image source={{uri: photoSource}} style={styles.profilePic}/>
+          <Image source={photoSource} style={styles.profilePic}/>
         </View>
         
-
+        <TermsAndConditions open = {openTerms} close = { ()=>setOpenTerms(false) }/>
+        <PrivacyPolicy open = {openPrivacyPolicy} close = { ()=>setOpenPrivacyPolicy(false) }/>
 
       <Animated.View style = {{...styles.animatedStyle, marginLeft:leftMarginSettings }}>
         
@@ -221,7 +433,7 @@ return (
 
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
-        onPress={()=>{console.log('button pressed')}}
+        onPress={()=>{setOpenTerms(true)}}
         background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
         <View style = {styles.touchable}>
           <Text style = {styles.textStyle}>Terms and conditions</Text>
@@ -234,7 +446,7 @@ return (
 
       <View style = {styles.limiter}></View>
       <TouchableNativeFeedback
-        onPress={()=>{console.log('button pressed')}}
+        onPress={()=>{setOpenPrivacyPolicy(true)}}
         background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
         <View style = {styles.touchable}>
           <Text style = {styles.textStyle}>Privacy policy</Text>
@@ -275,7 +487,7 @@ return (
         <View style = {styles.touchable}>
           <Text style = {styles.textStyle}>Change name</Text>
           <View style = {styles.iconContainer}>
-            <Text style = {{fontSize:10, color:"gray"}}>{user.displayName}</Text>
+            <Text style = {{fontSize:10, color:"gray"}}>{`${firstName} ${lastName}`}</Text>
           </View>
         </View>
       </TouchableNativeFeedback>
@@ -349,11 +561,16 @@ return (
       </Animated.View>
       
       
+
+      {/* CHANGE NAME SCREEN *********************************** */}
       <Animated.View style = {{...styles.settingsContainer, left:leftMarginChangeNameScreen}} >
       <TouchableOpacity style ={{position:'absolute', left:"10%",top:"5%"}} onPress={()=>{goBackToSettings()}}>
               <Icon name='arrow-back' size={height/22} color='gray' />
       </TouchableOpacity>
 
+        
+        
+        
         <View style = {styles.changeNameFormContainer}>
             <TextInput  
            
@@ -369,9 +586,22 @@ return (
            
           
         </View>
-        <TouchableOpacity onPress={()=>{changeName()}}>
+
+        <View style = {styles.changeNameFormContainer}>
+            <TextInput  
+           
+           containerStyle={styles.inputView}
+           inputContainerStyle={{backgroundColor:"white"}}
+           placeholder="Last Name..." 
+           placeholderTextColor="rgb(0,0,0)"
+          
+           
+           onChangeText={text => setLastName(text)}/>
+              
+        </View>
+        <TouchableOpacity style ={styles.changeNameButton} onPress={()=>{changeName();goBackToSettings()}}>
           <View>
-            <Text>saluatre schimba numele</Text>
+            <Text>Change name</Text>
           </View>
           </TouchableOpacity>
       </Animated.View>
@@ -379,7 +609,51 @@ return (
 
 
 
+       
 
+
+      {/* CHANGE PROFILE PICTURE SCREEN ************************************************** */}
+      <Animated.View style = {{...styles.settingsContainer, left:leftMarginChangeProfilePictureScreen}} >
+      <TouchableOpacity style ={{position:'absolute', left:"10%",top:"5%"}} onPress={()=>{goBackToSettings()}}>
+              <Icon name='arrow-back' size={height/22} color='gray' />
+      </TouchableOpacity>
+
+      <TouchableOpacity style ={styles.changeNameButton} onPress={()=>{changeProfilePicture()}}>
+          <View>
+            <Text>Choose photo</Text>
+          </View>
+        </TouchableOpacity>
+
+        {image !== null ?
+
+        (<View style = {styles.uploadPhoto}>
+          <Image source={image} style={styles.uploadPic}/>
+        </View>) : 
+
+        (null)
+        }
+
+        {uploading ? (
+          <View style = {{paddingBottom:5}}>
+         <Progress.Bar progress = {transferred} width={width/1.5}/>
+         </View>
+        ) :
+        (<TouchableOpacity  disabled={disabledUpload} style ={{...styles.changeNameButton, backgroundColor:buttonColor }} onPress={()=>{uploadImage()}}>
+          <View>
+            <Text>Upload image</Text>
+          </View>
+        </TouchableOpacity>) 
+        }
+
+
+      </Animated.View>
+
+
+
+
+
+      <PhoneNumber importedStyle = {{...styles.settingsContainer, left: leftMarginPhoneNumberScreen}} goBackToSettings = {()=>{goBackToSettings()}} />
+      <ChangePassword importedStyle ={{...styles.settingsContainer, left: leftMarginChangePasswordScreen}} goBackToSettings = {()=>goBackToSettings()}/>
       
       
       
@@ -489,7 +763,19 @@ const styles = StyleSheet.create({
     }, 
     changeNameFormContainer:{
       alignItems:"center",
-      justifyContent:"center"
+      justifyContent:"center",
+      
+      shadowColor: "#000",
+      shadowOffset: {
+	      width: 0,
+	      height: 1,
+      },
+      shadowOpacity: 0.22,
+      shadowRadius: 2.22,
+      elevation: 3,
+      borderRadius:50,
+      width:width/1.5
+      
     },
     inputView:{
       width:width/1.5,
@@ -503,6 +789,41 @@ const styles = StyleSheet.create({
       
     },
   
+    changeNameButton:{
+      width:width/1.5,
+    backgroundColor:"rgba(90,128,232,0.8)",
+    borderRadius:25,
+    height:50,
+    alignItems:"center",
+    justifyContent:"center",
+    marginTop:"2%",
+    marginBottom:"2%"
+    },
+
+    uploadPhoto:{
+    
+      borderRadius:100,
+      overflow: 'hidden',
+      borderColor:"white",
+      shadowColor: "#000",
+      borderWidth:4,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.23,
+      shadowRadius: 2.62,
+  
+      elevation: 4, 
+      
+      },
+      uploadPic:{
+  
+        width:"50%",
+        height:undefined,
+        aspectRatio:1, 
+              
+    },
   
 })
 

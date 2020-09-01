@@ -31,6 +31,8 @@ import auth from '@react-native-firebase/auth';
 import {useAuth} from './CustomHooks/useAuth'
 import EmailVerificationScreen from './Screens/EmailVerificationScreen/EmailVerificationScreen'
 import {userContext} from './context/user.context'
+import SplashScreen from './CustomComponents/SplashScreen'
+
 
 StatusBar.setBackgroundColor("rgba(0,0,0,0)")
 StatusBar.setBarStyle("light-content")
@@ -283,23 +285,30 @@ function App(){
  
  
   const [user, setUser] = useState()
-  
+  const [initializing, setInitializing] = useState(false)
 
   useEffect(()=>{
     const subscribe = onAuthStateChange(setUser)
-
+    
     return ()=>{
+
+     
       subscribe();
     }
   },[])
+  
 
   console.log(user)
+
+
 
   function refreshUser(){
       setUser(auth().currentUser)
       console.log("utilizatorul a fost refreshuit")
   }
 
+  if(initializing) {return(<SplashScreen/>)}
+  else{
   return(
     <UserProvider value={{user, refreshUser}}>
       <NavigationContainer>
@@ -327,7 +336,7 @@ function App(){
     </UserProvider>
 
   );
-
+}
 
     
   }

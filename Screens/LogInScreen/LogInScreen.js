@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scrollview'
 import auth from '@react-native-firebase/auth';
 import { LoginManager, AccessToken } from 'react-native-fbsdk';
+import database  from '@react-native-firebase/database'
 export default function LogInScreen({navigation}){
   
   const [email, setEmail] = useState('');
@@ -80,8 +81,22 @@ export default function LogInScreen({navigation}){
     const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
   
     // Sign-in the user with the credential
-    return auth().signInWithCredential(facebookCredential);
+    auth().signInWithCredential(facebookCredential).then((UserCredential) => {
+      
+      database().ref(`/users/${UserCredential.user.uid}`).set({
+        displayName: UserCredential.user.displayName,
+        email: UserCredential.user.email,
+        photoURL: UserCredential.user.photoURL
+      })
+      navigation.navigate('Profile', {facebookCredentials: true})
+  
+  }) 
   }
+
+
+
+
+
   return (
      
       <ImageBackground source={require("../../images/authPhoto.jpg")} style={styles.container}>
@@ -125,7 +140,7 @@ export default function LogInScreen({navigation}){
           <Text style={styles.loginText}>Sign-Up</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.fbBtn} onPress={()=>{onFacebookButtonPress().then(() => navigation.navigate('Profile', {facebookCredentials: true})) }}>
+        <TouchableOpacity style={styles.fbBtn} onPress={()=>{onFacebookButtonPress()}}>
         <Ionicons name="logo-facebook" size={35} color="white" style={styles.icons}/>
           <Text style={styles.fbText}>Continue With Facebook</Text>
         </TouchableOpacity>

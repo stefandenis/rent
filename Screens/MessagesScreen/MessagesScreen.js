@@ -9,17 +9,35 @@ import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 const {width, height} = Dimensions.get('window');
 import database from '@react-native-firebase/database'
-
+import auth from '@react-native-firebase/auth'
 
 
 
 function MessagesScreen() {
 
 
-const reference = database().ref('/users/123');
 
 const insert = ()=>{
 
+  const user = auth().currentUser
+
+      
+      database().ref(`/users/${user.uid}`).set({
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          phoneNumber: user.phoneNumber ? user.phoneNumber : 'empty',
+          listedCars: ['id1','id2','id3']
+         
+      })
+
+      database()
+        .ref(`/users/${user.uid}`)
+        .once('value')
+        .then(snapshot => {
+            console.log('User data: ', snapshot.val());
+            snapshot.val().forEach(()=>{})
+        });
 
 
 
