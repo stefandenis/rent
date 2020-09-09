@@ -8,7 +8,7 @@ import { ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
 import DatePicker from '../../CustomComponents/DatePicker'
 import auth from '@react-native-firebase/auth';
 import { NavigationHelpersContext } from '@react-navigation/native';
-
+import Loader from '../../CustomComponents/Loader'
 
 function RegisterScreen({navigation}): JSX.Element{
 
@@ -29,6 +29,7 @@ function RegisterScreen({navigation}): JSX.Element{
     const [acceptTerms, setAcceptTerms] = useState(true);
     const [firstNameError, setFirstNameError] = useState<string | undefined>(undefined);
     const [lastNameError, setLastNameError] = useState<string | undefined>(undefined);
+    const [loading, setLoading] = useState<boolean>(false)
 
     function _validateEmail(): boolean{
         const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -120,7 +121,7 @@ function RegisterScreen({navigation}): JSX.Element{
     function validateFieldsAndRegister(){
      
         if(_validateFields()){
-          
+          setLoading(true)
           auth().createUserWithEmailAndPassword(email, password)
             .then((userCredentials)=>{
               if(userCredentials.user){
@@ -130,6 +131,7 @@ function RegisterScreen({navigation}): JSX.Element{
                   userCredentials.user.sendEmailVerification();
                   console.log(firstName)
                   console.log(email)
+                  setLoading(false)
                   navigation.navigate('EmailVerification', {firstName:firstName, email:email, onEmailVerification: ()=>{navigation.navigate('Profile')}});
                 })
               }
@@ -154,7 +156,7 @@ function RegisterScreen({navigation}): JSX.Element{
 
     return(
         <SafeAreaView style={{flex:1}}>
-     
+        <Loader loading={loading}/>
         <ScrollView>
         <View style = {{flex:1, alignItems: "center", justifyContent:"center",backgroundColor:"white"}}>
         

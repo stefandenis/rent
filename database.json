@@ -55,12 +55,17 @@
     "listedCars":{
         
         "id_car": {
-            "model": "modelmasina",
-            "motor": "diesel",
+            "user": "uid of useR",
+            "poze": ["poza1","poza2..."],
+            
+            "model": "modelmasina BMW/AUDI etc un dropdown si optiune de completat camp in cazul in care nu exista",
+            "motor": "diesel/benzina",
             "transmission": "manual",
             "available":"true/false",
             "seats":"4",
             "casco":"da/nu",
+            "kilometri":"nr kilometri", 
+            
             "etc":"...",
             "latitude":"...",
             "longitude":"..."

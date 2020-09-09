@@ -10,7 +10,7 @@
 
 import React, { useState, Component, useEffect, useContext } from 'react';
 import { NavigationContainer, StackActions } from '@react-navigation/native';
-
+import SplashScreen from 'react-native-splash-screen'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator} from '@react-navigation/stack'
 import SearchScreen from './Screens/SearchScreen/SearchScreen';
@@ -19,7 +19,8 @@ import MessagesScreen from './Screens/MessagesScreen/MessagesScreen';
 import ListScreen from './Screens/ListScreen/ListScreen';
 import TestScreen from './Screens/TestScreen/TestScreen'
 import RentListScreen from './Screens/RentListScreen/RentListScreen'
-import {Image,View,Text,Button, TouchableOpacity} from 'react-native'
+import {Image,View,Text,Button, TouchableOpacity, Dimensions} from 'react-native'
+import Loader from './CustomComponents/Loader'
 import Icon from 'react-native-vector-icons/Ionicons';
 import LogInScreen from './Screens/LogInScreen/LogInScreen'
 import RegisterScreen from './Screens/RegisterScreen/RegisterScreen'
@@ -31,12 +32,13 @@ import auth from '@react-native-firebase/auth';
 import {useAuth} from './CustomHooks/useAuth'
 import EmailVerificationScreen from './Screens/EmailVerificationScreen/EmailVerificationScreen'
 import {userContext} from './context/user.context'
-import SplashScreen from './CustomComponents/SplashScreen'
-
-
+import LoadingScreen from './CustomComponents/LoadingScreen'
+import ListCarFormScreen from './Screens/ListCarFormScreen/ListCarFormScreen'
+const {width, height} = Dimensions.get('window')
 StatusBar.setBackgroundColor("rgba(0,0,0,0)")
 StatusBar.setBarStyle("light-content")
 StatusBar.setTranslucent(true)
+
 
 const Stack = createStackNavigator();
 const TabNavStack = createStackNavigator();
@@ -167,12 +169,64 @@ const MessagesStack = ()=>{
 
     
 
-const ListStack = ()=>(
+const ListStack = ()=>{
 
-  <Stack.Navigator>
-      <Stack.Screen options={{headerShown: false}} name="List" component={ListScreen}/>  
-  </Stack.Navigator>
-)
+  const {user, refreshUser} = useContext(userContext);
+  const navigation = useNavigation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false)
+
+
+  async function re_render(isEmailVerified){
+    console.log('isEmaiVerified in re_render function: ', isEmailVerified)
+    setEmailVerified(isEmailVerified);
+    await auth().currentUser.reload();
+    
+  } 
+  console.log(user)
+
+  if(user){
+  console.log("user email verified in profile stack:", user.emailVerified)}
+  if(user){
+
+      if(user.emailVerified || emailVerified || user.providerData[0].providerId == 'facebook.com'){
+        return(
+            
+            <Stack.Navigator>
+                <Stack.Screen options={{headerShown: false}} name="List" component={ListScreen}/> 
+                
+
+            </Stack.Navigator>
+        )
+  
+        }    
+      
+      else{
+        return(<EmailVerificationScreen name = {user.displayName} email = {user.email} onEmailVerification={(isEmailVerified)=>{re_render(isEmailVerified)}}/>)
+      }
+
+  }
+  else{
+    return(
+      <View style = {{flex:1, alignItems: "center", justifyContent:"center",backgroundColor:"black"}}>
+        <Image source={require("./images/logoR.png")} style={styles.logoImg}/>
+        <Text style = {{textAlign:"center",color:"white"}}>You must log-in or sign-up first. You can use your facebook or google account.</Text>
+        <TouchableOpacity style={styles.loginBtn} onPress={()=>navigation.navigate('LogIn')}>
+          <Text style={styles.loginText}>Log In</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.signupBtn} onPress={()=>navigation.navigate('LogIn')}>
+          <Text style={styles.loginText}>Sign Up</Text>
+        </TouchableOpacity>
+  
+      </View>
+    )
+  }
+  
+
+
+
+
+}
 
 const ProfileStack = ({route})=>{
 
@@ -286,10 +340,12 @@ function App(){
  
   const [user, setUser] = useState()
   const [initializing, setInitializing] = useState(false)
-
+  const [loading, setLoading] = useState(true)
+  
   useEffect(()=>{
+    SplashScreen.hide();
     const subscribe = onAuthStateChange(setUser)
-    
+    setLoading(false)
     return ()=>{
 
      
@@ -310,11 +366,15 @@ function App(){
   if(initializing) {return(<SplashScreen/>)}
   else{
   return(
+    
     <UserProvider value={{user, refreshUser}}>
+      <Loader loading={loading}/>
       <NavigationContainer>
           <RootStack.Navigator mode="modal" >
+          
               <RootStack.Screen options={{headerShown: false}} name="TabNav"  component={TabNavStackScreen} />
               <RootStack.Screen options={{headerShown: false}} name="LogIn" component={LogInScreen}/> 
+              <RootStack.Screen options={{headerShown: false}} name="Loader"  component={Loader} />
               <RootStack.Screen name="Test" options = {({ route }) =>{
 
                 return({           
@@ -330,11 +390,12 @@ function App(){
         )}} component={TestScreen} />
           <RootStack.Screen options={{headerShown: false}} name = "Register" component = {RegisterScreen}/>
           <RootStack.Screen options = {{headerShown: false }} name = "EmailVerification" component = {EmailVerificationScreen}/>
+          <Stack.Screen options = {{headerStyle:{ backgroundColor:'rgb(138,199,253)'},headerTitle: "Listeaza masina"}} name="ListCarForm" component={ListCarFormScreen}/>
           </RootStack.Navigator>
 
     </NavigationContainer>
     </UserProvider>
-
+    
   );
 }
 

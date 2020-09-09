@@ -5,12 +5,14 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scrollview'
 import auth from '@react-native-firebase/auth';
 import { LoginManager, AccessToken } from 'react-native-fbsdk';
 import database  from '@react-native-firebase/database'
+import Loader from '../../CustomComponents/Loader'
 export default function LogInScreen({navigation}){
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [wrongPassword, setWrongPassword] = useState(false);
   const [invalidEmail, setInvalidEmail] = useState(false);
+  const [loading, setLoading] = useState(false)
 
   function emailOrPassWrongError(){
 
@@ -35,10 +37,12 @@ export default function LogInScreen({navigation}){
 
   function authenticate(){
     
-
+    setLoading(true)
     auth().signInWithEmailAndPassword(email, password)
       .then(function(result) {
+              setLoading(false)
               navigation.goBack();
+              
             })
       .catch(function(error) {
       // Handle Errors here.
@@ -49,17 +53,22 @@ export default function LogInScreen({navigation}){
         if (errorCode === 'auth/wrong-password') {
           console.log("wrong pass")
           setWrongPassword(true);
+          setLoading(false)
         }
         if(errorCode === "auth/user-not-found"){
           console.log('user not found');
           setWrongPassword(true);
+          setLoading(false)
         }
         if(errorCode === "auth/invalid-email"){
           console.log('invalid email');
           setInvalidEmail(true);
+          setLoading(false)
         }
       
     });  
+  
+
   }
   
   async function onFacebookButtonPress() {
@@ -98,9 +107,9 @@ export default function LogInScreen({navigation}){
 
 
   return (
-     
+      
       <ImageBackground source={require("../../images/authPhoto.jpg")} style={styles.container}>
-       
+      <Loader loading={loading}/> 
       <TouchableOpacity style={{position:"absolute", top:"6%",left:"5%"}} onPress={()=> navigation.goBack()}>
         <Ionicons name="close" size={35} color="white" />
       </TouchableOpacity>
