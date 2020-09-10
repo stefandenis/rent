@@ -12,9 +12,12 @@ import { initialWindowMetrics } from 'react-native-safe-area-context';
 import ChangePassword from '../../CustomComponents/ChangePassword';
 import CarSlideShow from '../../CustomComponents/CarSlideShow';
 import {cars, models} from '../../config/cars'
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import MapView, { PROVIDER_GOOGLE, Marker, LatLng } from 'react-native-maps';
 
+navigator.geolocation = require('@react-native-community/geolocation');
 
-
+const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
 let CurrentSlide = 0;
 let IntervalTime = 4000;
 
@@ -47,6 +50,32 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     const [isGaz, setGaz] =useState(false)
     const [isElectricitate, setElectricitate] = useState(false)
     
+    const [nrSeats, setNrSeats] = useState(0)
+    
+    const seats = [1,2,3,4,5,6,7,8,9,10]
+
+    const [km, setKm] = useState('')
+
+    const [details, setDetails] = useState('')
+
+    const [lat, setLat] = useState<number>(45.9852129)
+    const [long, setLong] = useState<number>(24.6859225)
+
+    const [regionSearched, setRegionSearched] = useState({
+      latitude: 45.9852129,
+      longitude: 24.6859225,
+      latitudeDelta: 5,
+      longitudeDelta: 5,
+    })
+    const [region, setRegion] = useState({
+      latitude: 45.9852129,
+      longitude: 24.6859225,
+      latitudeDelta: 5,
+      longitudeDelta: 5,
+    })
+
+    const mapRef = React.useRef()
+    const [currentAddress, setCurrentAddress] = useState('Romania')
 
 
     function chooseCarPicture(){
@@ -125,7 +154,6 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
       console.log('image dupa setimage tmp: ', image)
       
       setImageKey(imageKey-1)
-      
       scrollRef.current.scrollTo({x: 0, y: 0, animated: true})
     }
 
@@ -160,7 +188,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
               
               >
 
-                {image.map((image,index) =>{
+                {image.map((image,index: number) =>{
 
                     return(
 
@@ -195,7 +223,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                 
               <View  style = {{flexDirection:"row",alignItems:"center",justifyContent:"center"}}>
                   
-                  {image.map((image,i)=>{
+                  {image.map((image: string,i: number)=>{
 
                       return(<Text style = {((index) == i) ? styles.activeBullet : styles.notActiveBullet }>{'\u2B24'}</Text>)
                   })}
@@ -217,6 +245,19 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
  
 
+    const onRegionChangeComplete = (newRegion)=>{
+
+      console.log(newRegion); 
+      setRegion(newRegion);
+      fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + newRegion.latitude + ',' + newRegion.longitude + '&key=' + API_KEY)
+      .then((response) => response.json())
+            .then((responseJson) => {
+              
+            console.log(responseJson.results[0].address_components[0].long_name);
+            setCurrentAddress(responseJson.results[0].address_components[0].long_name)
+})
+
+    }
 
     
 
@@ -230,6 +271,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
                 <ScrollView 
                   style = {{width:width}}
+                  keyboardShouldPersistTaps={'handled'}
                   
                   
                   >
@@ -274,7 +316,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                     >
 
                         { 
-                        models[carBrand].map((model,index)=>{
+                        models[carBrand].map((model: string,index: number)=>{
                           
 
                         return(
@@ -397,11 +439,153 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
 
                       
+                    <View style = {{paddingVertical:15}}>
+                      <Text style = {{textDecorationLine:'underline', fontSize:20, marginLeft: width*0.1/2, marginBottom:10}} >Locuri</Text>
+                      <View style = {{alignItems:'center'}}>
                       
+                        <View style = {styles.pickerContainer}>
+                        
+                          <Picker
+                            selectedValue={nrSeats}
+                            style={styles.picker }
+                            mode='dropdown'
+                            onValueChange={(itemValue, itemIndex) => setNrSeats(itemValue)}
+                          >
 
-                <View style ={{height:100}}>
+                            {seats.map((seat,index)=>{
+                              
+                              return(
+                                <Picker.Item label={seat.toString()} value={seat} />
+                              )
 
-                </View>
+                            })}
+                            
+                          </Picker>
+                        </View>
+                      </View> 
+                  </View>
+                          
+
+                  <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
+                      <View style = {styles.delimiter}></View>
+                    </View>
+
+
+                    <View style = {{paddingVertical:15}}>
+                      <Text style = {{textDecorationLine:'underline', fontSize:20, marginLeft: width*0.1/2, marginBottom:10}} >Kilometrii</Text>
+                      <View style = {{alignItems:'center'}}>
+                            
+                          <TextInput 
+                          style = {{...styles.pickerContainer, width:width*0.9}}
+                          placeholder = 'Kilometrii...'
+                          value = {km}
+                          keyboardType = 'numeric'
+                          onChangeText={text => setKm(text)}/>
+                          
+                                                  
+                      </View> 
+                  </View>
+
+
+                  <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
+                      <View style = {styles.delimiter}></View>
+                  </View>
+
+
+                  <View style = {{paddingVertical:15}}>
+                      <Text style = {{textDecorationLine:'underline', fontSize:20, marginLeft: width*0.1/2, marginBottom:10}} >Adauga detalii despre masina ta</Text>
+                      <View style = {{alignItems:'center'}}>
+                            
+                          <TextInput 
+                          style = {{...styles.pickerContainer, width:width*0.9, height:100,textAlignVertical: "top"}}
+                          placeholder = 'Detalii...'
+                          value = {details}
+                          multiline={true}
+                          onChangeText={text => setDetails(text)}/>
+                          
+                                                  
+                      </View> 
+                  </View>
+
+
+                  <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
+                      <View style = {styles.delimiter}></View>
+                  </View>
+
+
+                  <View style = {{paddingVertical:15}}>
+                      <Text style = {{textDecorationLine:'underline', fontSize:20, marginLeft: width*0.1/2, marginBottom:10}} >Unde se afla masina ta?</Text>
+                      <GooglePlacesAutocomplete
+                        placeholder='Locatia...'
+                        fetchDetails
+                        onPress={(data, details = null) => {
+                          // 'details' is provided when fetchDetails = true
+                          console.log(data,details);
+                          if(details){
+                            setLat(details.geometry.location.lat)
+                            setLong(details.geometry.location.lng)
+                            setCurrentAddress(details.name)
+                            mapRef.current.animateToRegion({
+                              latitude: details.geometry.location.lat,
+                              longitude: details.geometry.location.lng,
+                              latitudeDelta: 0.000922,
+                              longitudeDelta: 0.000421
+                            })
+                            
+                          }
+                        }}
+                        query={{
+                          //TODO: secure KEY with crypto or smth
+                          key: API_KEY,
+                          language: 'en',
+                        }}
+                        currentLocation={true}
+                        currentLocationLabel='Locatia curenta'
+                      />
+                      <View>
+                        <MapView
+                          style={styles.map}
+                          ref={mapRef}
+                          showsUserLocation
+                          userLocationUpdateInterval = {100}
+                          onPress={e => console.log(e.nativeEvent)}
+                          initialRegion={{
+                            latitude: 45.9852129,
+                            longitude: 24.6859225,
+                            latitudeDelta: 5,
+                            longitudeDelta: 5,
+                          }}
+                          
+                          
+                          onRegionChangeComplete={onRegionChangeComplete}
+                          />
+
+                          <View style = {{position:"absolute",top:0,bottom:0,left:0,right:0,justifyContent:"center",alignItems:"center"}}>
+                              <View style = {{backgroundColor:"black", width:7, height:7, borderRadius:20}}>
+
+                              </View>
+                              
+                          </View>
+                          <View style = {{position:"absolute",bottom:10,left:0,right:0,alignItems:"center"}}>
+                            <View style = {{paddingHorizontal:5, borderRadius:15,backgroundColor:'rgba(218, 223, 225, 0.7)'}}>
+                                  <Text style = {{ fontSize:15}}>{currentAddress}</Text>
+                              </View>
+                          </View>
+
+                          
+                        </View>
+
+                        
+
+
+                      
+                  </View>
+
+
+
+
+
+                <View style ={{height:100}}></View>
 
 
                 </ScrollView> 
@@ -409,7 +593,12 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
 
 
-                <TouchableOpacity style ={styles.listCarButton} onPress={()=>{console.log('pressed')}}>
+                <TouchableOpacity style ={styles.listCarButton} onPress={()=>{setRegion({
+                          latitude: 20.9852129,
+                          longitude: 24.6859225,
+                          latitudeDelta: 5,
+                          longitudeDelta: 5,
+                        })}}>
                     <View>
                         <Text>Listeaza masina</Text>
                     </View>
@@ -525,12 +714,14 @@ const styles = StyleSheet.create({
       },
       pickerContainer:{
         borderColor:'gray',
-        borderWidth:2,
-        marginTop:10
+        borderWidth:1,
+        marginTop:10,
+        borderRadius:5
        
       },
       picker:{
-        width:width*0.9
+        width:width*0.9,
+        
         
       },
       transmissionContainer: {
@@ -549,6 +740,11 @@ const styles = StyleSheet.create({
       label: {
         margin:0,
         fontSize:25
+      },
+      map: {
+        width:width,
+        height:300,
+      
       },
 
 
