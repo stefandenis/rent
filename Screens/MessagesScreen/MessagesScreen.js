@@ -22,22 +22,9 @@ const insert = ()=>{
   const user = auth().currentUser
 
       
-      database().ref(`/users/${user.uid}`).set({
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          phoneNumber: user.phoneNumber ? user.phoneNumber : 'empty',
-          listedCars: ['id1','id2','id3']
-         
+      database().ref(`/users/${user.uid}/listedCars`).set({
+        listedCars: 'salut'
       })
-
-      database()
-        .ref(`/users/${user.uid}`)
-        .once('value')
-        .then(snapshot => {
-            console.log('User data: ', snapshot.val());
-            snapshot.val().forEach(()=>{})
-        });
 
 
 

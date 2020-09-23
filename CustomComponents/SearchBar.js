@@ -8,7 +8,8 @@ import {
     StyleSheet,
     Image,
     ScrollView,
-    TextInput
+    TextInput,
+    TouchableOpacity
     
   } from 'react-native';
   
@@ -26,7 +27,9 @@ function SearchBar(props){
             </View>
             <View style = {styles.searchBarStyle}>
                    <View style = {styles.iconContainer}>
-                   <Icon name={"search"} size={30} color={"rgba(0,0,0,1)"} />
+                    <TouchableOpacity onPress = {()=>{props.onFocus()}}>
+                    <Icon name={"search"} size={30} color={"rgba(0,0,0,1)"} />
+                    </TouchableOpacity>
                     </View>
                     <View
                         style={{
@@ -46,7 +49,9 @@ function SearchBar(props){
                             textAlign = "auto"
                             fontSize = {17}
                             color="black"
+                            onFocus={()=>{props.onFocus()}}
                             placeholderTextColor = {'rgba(0,0,0,1)'}
+
                             />
                     </View> 
             </View>

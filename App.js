@@ -34,17 +34,22 @@ import EmailVerificationScreen from './Screens/EmailVerificationScreen/EmailVeri
 import {userContext} from './context/user.context'
 import LoadingScreen from './CustomComponents/LoadingScreen'
 import ListCarFormScreen from './Screens/ListCarFormScreen/ListCarFormScreen'
+import SearchListScreen from './Screens/SearchListScreen/SearchListScreen'
+import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
+import CarInfoScreen from './Screens/CarInfoScreen/CarInfoScreen'
+
 const {width, height} = Dimensions.get('window')
+
 StatusBar.setBackgroundColor("rgba(0,0,0,0)")
 StatusBar.setBarStyle("light-content")
 StatusBar.setTranslucent(true)
 
 
-const Stack = createStackNavigator();
+const Stack = createSharedElementStackNavigator();
 const TabNavStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const AuthenticationNeedStack = createStackNavigator();
-const RootStack = createStackNavigator();
+const RootStack = createSharedElementStackNavigator();
 
 const UserProvider = userContext.Provider;
 const UserConsumer = userContext.Consumer;
@@ -390,8 +395,32 @@ function App(){
         )}} component={TestScreen} />
           <RootStack.Screen options={{headerShown: false}} name = "Register" component = {RegisterScreen}/>
           <RootStack.Screen options = {{headerShown: false }} name = "EmailVerification" component = {EmailVerificationScreen}/>
-          <Stack.Screen options = {{headerStyle:{ backgroundColor:'rgb(138,199,253)'},headerTitle: "Listeaza masina"}} name="ListCarForm" component={ListCarFormScreen}/>
-          </RootStack.Navigator>
+          <RootStack.Screen options = {{headerStyle:{ backgroundColor:'rgb(138,199,253)'},headerTitle: "Inregistreaza masina"}} name="ListCarForm" component={ListCarFormScreen}/>
+          <RootStack.Screen 
+            options = {{headerShown: false }} 
+            name="SearchListScreen" 
+            component={SearchListScreen}
+            
+          />
+          <RootStack.Screen 
+            options = {{headerShown: false }} 
+            name="CarInfoScreen" 
+            component={CarInfoScreen}
+            options = {()=>({
+              headerShown:false,
+              gestureEnabled:false,
+              transitionSpec:{
+                open:{animation:'timing', config: {duration :500}},
+                close: {animation:'timing', config: {duration:500}}
+              }
+            })}
+            sharedElementsConfig={(route, otherRoute, showing) => {
+              const { userCar } = route.params;
+              return [`${userCar.photos[0]}`];
+            }}
+          />
+          
+        </RootStack.Navigator>
 
     </NavigationContainer>
     </UserProvider>

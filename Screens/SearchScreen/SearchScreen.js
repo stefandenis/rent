@@ -8,9 +8,11 @@ const image = require('../../images/drive2.jpg')
 const {width, height} = Dimensions.get('window');
 import {useNavigation} from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-
-
-
+import { SharedElement } from 'react-navigation-shared-element';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import functions from '@react-native-firebase/functions';
+import database from '@react-native-firebase/database'
+const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
 import {
     View,
     Text,
@@ -22,7 +24,8 @@ import {
     
   } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-
+import SearchListScreen from '../SearchListScreen/SearchListScreen';
+const idSearch = 1;
 
 function SearchScreen({navigation}) {
     
@@ -38,6 +41,8 @@ function pressHandler(){
 }
 
 
+
+
   return (
     
     <SafeAreaView style={styles.container}>
@@ -48,14 +53,21 @@ function pressHandler(){
               <View styles={styles.imageContainer} >
               
                   <ImageBackground source={image} style={styles.image} imageStyle={imgStyle}>
-                  
-                      <SearchBar
-                        placeholder="Current Location/City"
-                        onChangeText={(search)=>setSearch(search)}
-                        value={search}
-                        
+                     
+                 
+                     
 
-                      />
+                        <SearchBar
+                          placeholder="Current Location/City"
+                          onChangeText={(search)=>setSearch(search)}
+                          value={search}
+                          onFocus = {()=>{console.log('buttonpressed');navigation.navigate('SearchListScreen')}} 
+
+                        />
+                        
+                        
+                     
+                      
 
 
                   </ImageBackground>
@@ -90,7 +102,10 @@ function pressHandler(){
         </View>
         
         
+        
         </View>
+              
+
 
 </ScrollView>
 

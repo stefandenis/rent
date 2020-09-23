@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Text, View,Image, StyleSheet, FlatList,ScrollView, CheckBox, TextInput, Animated, TouchableNativeFeedback, Dimensions, TouchableOpacity, InteractionManager, Picker } from 'react-native'
+import {Text, View,Image, StyleSheet, FlatList,ScrollView, CheckBox, TextInput, Animated, TouchableNativeFeedback, Dimensions, TouchableOpacity, InteractionManager, Picker, Alert } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useLinkProps, NavigationContainer } from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
@@ -14,7 +14,11 @@ import CarSlideShow from '../../CustomComponents/CarSlideShow';
 import {cars, models} from '../../config/cars'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapView, { PROVIDER_GOOGLE, Marker, LatLng } from 'react-native-maps';
-
+import Geocoder from 'react-native-geocoder';
+import auth from '@react-native-firebase/auth'
+import storage from '@react-native-firebase/storage'
+import database from '@react-native-firebase/database'
+import Loader from '../../CustomComponents/Loader'
 navigator.geolocation = require('@react-native-community/geolocation');
 
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
@@ -25,10 +29,15 @@ interface Props {
     navigation: any
 }
 
+interface Image { 
+    key: number,
+    source: object,
+}
+
 
 const ListCarFormScreen: React.FC<Props> = (props) =>{
 
-    const [image, setImage] = useState<Array>([]);
+    const [images, setImages] = useState<Array<Image>>([]);
     const [index, setIndex] = useState(0)
     const scrollX = React.useRef(new Animated.Value(0)).current
     var [imageKey, setImageKey] = useState(0)
@@ -37,11 +46,15 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     const [currentPic, setCurrentPic] = useState(1)
     const onItemIndexChange = React.useCallback(setIndex, [])
     const scrollRef = React.useRef()
+    const scrollRefParent = React.useRef()
     const [gestureName, setGestureName] = useState('none')    
     const [selectedValue, setSelectedValue] = useState('')
+    const [invalidFields, setInvalidFields] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [carModel, setCarModel] = useState(models[cars[0]][0])
     const [carBrand, setCarBrand] = useState(cars[0])
-    
+    const leftMargin = useState(new Animated.Value(10))[0]
+
     const [isManual, setManual] = useState(false)
     const [isAutomatic, setAutomatic] = useState(false)
 
@@ -50,17 +63,18 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     const [isGaz, setGaz] =useState(false)
     const [isElectricitate, setElectricitate] = useState(false)
     
-    const [nrSeats, setNrSeats] = useState(0)
+    const [nrSeats, setNrSeats] = useState(4)
     
     const seats = [1,2,3,4,5,6,7,8,9,10]
 
     const [km, setKm] = useState('')
 
     const [details, setDetails] = useState('')
-
+  
     const [lat, setLat] = useState<number>(45.9852129)
     const [long, setLong] = useState<number>(24.6859225)
-
+    const [locality, setLocality] = useState('')
+    
     const [regionSearched, setRegionSearched] = useState({
       latitude: 45.9852129,
       longitude: 24.6859225,
@@ -77,7 +91,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     const mapRef = React.useRef()
     const [currentAddress, setCurrentAddress] = useState('Romania')
 
-
+ 
     function chooseCarPicture(){
 
       console.log("scrollX:", scrollX)
@@ -103,9 +117,9 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
               const source =  { key: imageKey, source: {uri : response.uri} };
               console.log(source);
               console.log(source.source)
-              setImage(image.concat(source));
+              setImages(images.concat(source));
               console.log("in image picker ")
-              console.log(image)
+              console.log(images)
              
              
              
@@ -128,7 +142,9 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     function addButton(){
 
       return(
+        <View style = {{alignItems:"center"}}>
         <TouchableNativeFeedback
+          
           onPress={()=>{chooseCarPicture()}}
           background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
               <View style = {styles.touchable}>
@@ -136,6 +152,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
               
               </View>
         </TouchableNativeFeedback>
+        </View>
         
         
       )
@@ -143,15 +160,15 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
     function deleteCarPicture(){
 
-      const tmp = [...image]
-      console.log("image: ",image)
+      const tmp = [...images]
+      console.log("image: ",images)
       console.log('index: ', index)
       console.log("tmp: ",tmp)
       
       console.log("tmp dupa slice: ",tmp)
       tmp.splice(index,1);
-      setImage([...tmp])
-      console.log('image dupa setimage tmp: ', image)
+      setImages([...tmp])
+      console.log('image dupa setimage tmp: ', images)
       
       setImageKey(imageKey-1)
       scrollRef.current.scrollTo({x: 0, y: 0, animated: true})
@@ -171,7 +188,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     function carPictures(){
       console.log('car pictures')
       
-      console.log(image)
+      console.log(images)
       
       return(
         <View> 
@@ -188,7 +205,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
               
               >
 
-                {image.map((image,index: number) =>{
+                {images.map((image,index: number) =>{
 
                     return(
 
@@ -223,7 +240,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                 
               <View  style = {{flexDirection:"row",alignItems:"center",justifyContent:"center"}}>
                   
-                  {image.map((image: string,i: number)=>{
+                  {images.map((image: string,i: number)=>{
 
                       return(<Text style = {((index) == i) ? styles.activeBullet : styles.notActiveBullet }>{'\u2B24'}</Text>)
                   })}
@@ -249,17 +266,173 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
       console.log(newRegion); 
       setRegion(newRegion);
-      fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + newRegion.latitude + ',' + newRegion.longitude + '&key=' + API_KEY)
-      .then((response) => response.json())
-            .then((responseJson) => {
+      Geocoder.geocodePosition({lat: newRegion.latitude, lng: newRegion.longitude}).then(res => {
+        console.log(res[0].locality)
+        setLocality(res[0].locality)
+        setCurrentAddress(res[0].formattedAddress)
+    })
+    .catch(err => console.log(err))
+    
+    }
+
+
+    function checkFields(){
+      setInvalidFields(false)
+      if(images.length==0){
+        Alert.alert('Poza masinii', 'Alege cel putin o poza cu masina ta')
+        if(scrollRefParent.current != undefined) scrollRefParent.current.scrollTo({x:0,y:0,animated:true})
+        setInvalidFields(true)
+      }
+      
+      if(!(isManual || isAutomatic)){
+        
+        Alert.alert('Manuala sau automata?','Trebuie sa alegeti modul de transmisie')
+        if(scrollRefParent.current != undefined) scrollRefParent.current.scrollTo({x:0,y:0,animated:true})
+        setInvalidFields(true)
+      }
+      if(!(isBenzina || isGaz || isElectricitate || isMotorina)){
+
+        Alert.alert('Ce combustibil foloseste masina?','Alege tipul de combustibil al masinii folosit la alimentare')
+        if(scrollRefParent.current != undefined) scrollRefParent.current.scrollTo({x:0,y:0,animated:true})
+        setInvalidFields(true)
+      }
+
+      if(km == ''){
+        Alert.alert('Kilometrajul masinii', 'Cati kilometri au fost parcursi cu aceasta masina?')
+        if(scrollRefParent.current != undefined) scrollRefParent.current.scrollTo({x:0,y:0,animated:true})
+        setInvalidFields(true)
+      }
+
+      
+    }
+    
+    async function listCar(){
+      var photosDownloadURL = []
+      var usersListedCarsField = []
+      checkFields();
+      if(!invalidFields){
+
+      
+
+        // ********INSERT IMAGES IN STORAGE************
+
+        const uid = auth().currentUser.uid
+        
+        var pictureNumber=0;
+        console.log('mda')
+        const myRef = database().ref().push();
+        const car_key = myRef.key;
+        var filePath
+        
+        for(const image of images) {
+        
+          
+          filePath = `${uid}/ListedCarsPictures/${car_key}/${pictureNumber}`
+          const {uri} = image.source  
+          const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+          console.log(uri)
+          console.log(uid)
+          const task = storage()
+            .ref(filePath)
+            .putFile(uploadUri);
+
+            task.on('state_changed', taskSnapshot => {
+              console.log(`${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`);
+            });
+        
+            task.then(() => {
+              console.log('Image uploaded to the bucket!');
+            }); 
+            try {
+              await task;
+
+            } catch(e){
+              console.error(e)
+            }
+
+            
+
+            photosDownloadURL.push(await storage()
+              .ref(filePath)
+              .getDownloadURL());
+            
               
-            console.log(responseJson.results[0].address_components[0].long_name);
-            setCurrentAddress(responseJson.results[0].address_components[0].long_name)
-})
+            pictureNumber++;
+
+        }
+
+        database().ref(`/listedCars/${car_key}`).set({
+          user: uid,
+          photos: photosDownloadURL,
+          brand: carBrand,
+          model: carModel,
+          transmission: getTransmissionString(),
+          fuel: getFuelString(),
+          available:true,
+          kilometers: km,
+          seats: nrSeats,
+          latitude:region.latitude,
+
+          longitude:region.longitude,
+          locality:locality,
+          address: currentAddress
+          
+        })
+
+        
+        database().ref(`/users/${uid}/listedCars`)
+        .once('value', snapshot => {
+          if(snapshot.val()) {
+            console.log("snapshot val: ", snapshot.val())
+            usersListedCarsField = snapshot.val()
+          }
+          usersListedCarsField.push(car_key)
+         
+          database().ref(`/users/${uid}`).update({
+             listedCars: usersListedCarsField
+           })
+
+          });
+    
+
+
+
+
+
+
+       
+
+      }  
+        
+
+
 
     }
 
-    
+
+    function getTransmissionString(){
+      isManual ? ('manuala') : ('automata') 
+    }
+
+    function getFuelString(){ 
+      const fuel = ['motorina', 'benzina', 'gaz', 'electrica']
+      if(isMotorina) return fuel[0]
+      if(isBenzina) return fuel[1]
+      if(isGaz) return fuel[2] 
+      if(isElectricitate) return fuel[3]
+      
+    } 
+
+
+    function removeMapHint(){
+
+      Animated.timing(leftMargin, {
+        toValue: -1000,
+        duration:500,
+        useNativeDriver:false
+      }).start()
+    }
+
 
     return(
 
@@ -267,16 +440,18 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
             <View style = {{flex:1, justifyContent:"center", alignItems:"center",
             }}>
+                <Loader loading={loading}/> 
                 
 
                 <ScrollView 
                   style = {{width:width}}
                   keyboardShouldPersistTaps={'handled'}
+                  ref = {scrollRefParent}
                   
                   
                   >
                    
-                    {image.length == 0 ? (addButton()) : (carPictures())}
+                    {images.length == 0 ? (addButton()) : (carPictures())}
 
                    
                     <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
@@ -521,9 +696,11 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                         onPress={(data, details = null) => {
                           // 'details' is provided when fetchDetails = true
                           console.log(data,details);
+                          
                           if(details){
                             setLat(details.geometry.location.lat)
                             setLong(details.geometry.location.lng)
+                            
                             setCurrentAddress(details.name)
                             mapRef.current.animateToRegion({
                               latitude: details.geometry.location.lat,
@@ -564,13 +741,27 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                               <View style = {{backgroundColor:"black", width:7, height:7, borderRadius:20}}>
 
                               </View>
-                              
+
                           </View>
                           <View style = {{position:"absolute",bottom:10,left:0,right:0,alignItems:"center"}}>
                             <View style = {{paddingHorizontal:5, borderRadius:15,backgroundColor:'rgba(218, 223, 225, 0.7)'}}>
-                                  <Text style = {{ fontSize:15}}>{currentAddress}</Text>
+                                  <Text style = {{textAlign:"center", fontSize:15}}>{currentAddress}</Text>
                               </View>
                           </View>
+
+                          <Animated.View style = {{...styles.hintStyle, left:leftMargin}}>
+                            <View style = {{flexDirection:'row',paddingHorizontal:5, borderRadius:15,backgroundColor:'white', ...styles.shadowStyle}}>
+                                  <Text style = {{textAlign:"center", fontSize:20}}>Pozitioneaza punctul negru acolo unde se afla masina ta</Text>
+                                  <View style = {{borderWidth:0.5, borderColor:"black", marginVertical:5}}></View>
+                                  <TouchableOpacity onPress = {()=>{removeMapHint()}}  style = {{justifyContent:"center"}}>
+                              
+                                    <Icon name="close" size={35} color="black"/>
+                                  
+                                  </TouchableOpacity>
+                              </View>
+                          </Animated.View>
+
+                          
 
                           
                         </View>
@@ -584,8 +775,8 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
 
 
-
                 <View style ={{height:100}}></View>
+
 
 
                 </ScrollView> 
@@ -593,14 +784,9 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
 
 
-                <TouchableOpacity style ={styles.listCarButton} onPress={()=>{setRegion({
-                          latitude: 20.9852129,
-                          longitude: 24.6859225,
-                          latitudeDelta: 5,
-                          longitudeDelta: 5,
-                        })}}>
+                <TouchableOpacity style ={styles.listCarButton} onPress={()=>{listCar()}}>
                     <View>
-                        <Text>Listeaza masina</Text>
+                        <Text>Inregistreaza masina</Text>
                     </View>
                 </TouchableOpacity>
                 
@@ -644,7 +830,8 @@ const styles = StyleSheet.create({
         backgroundColor:"#D7D7D7",
         paddingHorizontal:"3%",
         borderRadius:5,
-        width:width*0.9
+        width:width*0.9,
+       
       },
       textStyle:{
         fontSize:width/20
@@ -746,6 +933,28 @@ const styles = StyleSheet.create({
         height:300,
       
       },
+      hintStyle:{
+        position:"absolute",
+        top:"20%",
+        width:width*0.8,
+        alignItems:"center",
+      
+
+      
+      },
+
+      shadowStyle:{
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: 7,
+        },
+        shadowOpacity: 0.43,
+        shadowRadius: 9.51,
+
+        elevation: 15,
+        
+      }
 
 
 
