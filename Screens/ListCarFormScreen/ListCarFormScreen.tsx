@@ -19,7 +19,11 @@ import auth from '@react-native-firebase/auth'
 import storage from '@react-native-firebase/storage'
 import database from '@react-native-firebase/database'
 import Loader from '../../CustomComponents/Loader'
+import firestore from '@react-native-firebase/firestore'
+
 navigator.geolocation = require('@react-native-community/geolocation');
+
+
 
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
 let CurrentSlide = 0;
@@ -91,7 +95,56 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
     const mapRef = React.useRef()
     const [currentAddress, setCurrentAddress] = useState('Romania')
 
+    const [yesDiscount, setYesDiscount] = useState(false)
+    const [noDiscount, setNoDiscount] = useState(false)
+    const [isEditable , setIsEditable] = useState(false)
+    const [display, setDisplay] = useState('none')
+    const [minDaysDiscount, setMinDaysDiscount] = useState(0)
+    const [price, setPrice] = useState(0)
+    const [discount, setDiscount] = useState(0)
+    const [totalPriceNoDiscount, setTotalPriceNoDiscount] = useState(0)
+    const [totalPriceWithDiscount, setTotalPriceWithDiscount] = useState(0)
+    const [minDays, setMinDays] = useState(1)
+
+useEffect(()=>{
+
+  var tPriceND = parseFloat(price) + parseFloat(5*price/100)
+  console.log(price)
+    console.log('total price:', typeof(tPriceND))
+    if(isNaN(tPriceND)){
+      setTotalPriceNoDiscount(0)
+    }else{
+      setTotalPriceNoDiscount(tPriceND)
  
+    }
+  
+  var tPriceWD = parseFloat(price) - parseFloat(discount*price/100) + parseFloat(5*price/100)
+  if(isNaN(tPriceWD)){
+    setTotalPriceWithDiscount(0)
+  }else{
+    setTotalPriceWithDiscount(tPriceWD)
+
+  }
+
+},[price,discount])
+
+
+function retDiscountText(){
+  if(yesDiscount) {
+    return(<Text style = {{textAlign:"right" ,fontSize: 20}}>TOTAL({minDaysDiscount ? minDaysDiscount : '...'} zile +) {totalPriceWithDiscount} RON/zi</Text>)
+  }else{
+    return
+  }
+}
+
+function retDiscount(){
+  if(yesDiscount){
+    return(<Text style = {{textAlign:"right", fontSize: 20}}>reducere {discount ? discount : '...'}%</Text>)
+  }else{
+    return
+  }
+}
+
     function chooseCarPicture(){
 
       console.log("scrollX:", scrollX)
@@ -134,8 +187,7 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
     
 
-   
-
+ 
   
 
 
@@ -361,7 +413,8 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
         }
 
-        database().ref(`/listedCars/${car_key}`).set({
+        firestore().collection('listedCars').doc(`${car_key}`).set({
+
           user: uid,
           photos: photosDownloadURL,
           brand: carBrand,
@@ -372,28 +425,28 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
           kilometers: km,
           seats: nrSeats,
           latitude:region.latitude,
-
           longitude:region.longitude,
           locality:locality,
-          address: currentAddress
-          
-        })
-
+          address: currentAddress,
+          price:price,
         
-        database().ref(`/users/${uid}/listedCars`)
-        .once('value', snapshot => {
-          if(snapshot.val()) {
-            console.log("snapshot val: ", snapshot.val())
-            usersListedCarsField = snapshot.val()
+          minDays:minDays,
+        
+          details: details
+
+        })
+        firestor().collection('users').doc(`${uid}`).collection('listedCars').get().then( querySnapshot =>{
+          
+          if(querySnapshot.data()){
+            usersListedCarsField = querySnapshot.data()
           }
           usersListedCarsField.push(car_key)
-         
-          database().ref(`/users/${uid}`).update({
-             listedCars: usersListedCarsField
-           })
+          firestore().collection('users').doc(`${uid}`).update({listedCars: usersListedCarsField})
 
-          });
-    
+        })
+
+
+      
 
 
 
@@ -508,7 +561,11 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                     <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
                     <View style = {styles.delimiter}></View>
                     </View>
+                      
 
+
+
+                    
                     
                 <View style = {{paddingVertical:15}}>
                     
@@ -651,12 +708,12 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                       <View style = {{alignItems:'center'}}>
                             
                           <TextInput 
-                          style = {{...styles.pickerContainer, width:width*0.9}}
-                          placeholder = 'Kilometrii...'
-                          value = {km}
-                          keyboardType = 'numeric'
-                          onChangeText={text => setKm(text)}/>
-                          
+                            style = {{...styles.pickerContainer, width:width*0.9}}
+                            placeholder = 'Kilometrii...'
+                            value = {km}
+                            keyboardType = 'numeric'
+                            onChangeText={text => setKm(text)}/>
+                            
                                                   
                       </View> 
                   </View>
@@ -773,9 +830,162 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
                   </View>
 
 
+                  <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
+                      <View style = {styles.delimiter}></View>
+                  </View>
 
 
-                <View style ={{height:100}}></View>
+                  <View style = {{paddingVertical:15}}>
+                      <Text style = {{textDecorationLine:'underline', fontSize:20, marginLeft: width*0.1/2, marginBottom:10}} >Numarul minim de zile pentru care oferi masina</Text>
+                      <View style = {{alignItems:'center'}}>
+                          
+                          <View style = {{marginLeft:20,flexDirection:"row", alignItems:"center"}}>
+                            <TextInput 
+                            style = {{fontSize:20,textAlign:'center' ,borderWidth:1, borderColor:'black',width:50}}
+                            placeholder = '...'
+                            keyboardType='numeric'
+                            value = {minDays}
+                            onChangeText={setMinDays}
+
+                            />
+                            <Text style = {{fontSize: 20, marginLeft:10}}>zile</Text>   
+                               
+                          
+
+                          
+                          </View>
+                          <Text style = {{ marginLeft:10}}>*Numarul minim de zile pentru care accepti sa oferi masina</Text>                     
+                          
+                      </View> 
+                  </View>
+
+
+
+
+
+
+                  <View style = {{flex:1, justifyContent:"center", alignItems:"center"}}>  
+                      <View style = {styles.delimiter}></View>
+                  </View>
+
+
+                  <View style = {{paddingVertical:15}}>
+                      <Text style = {{textDecorationLine:'underline', fontSize:20, marginLeft: width*0.1/2, marginBottom:10}} >Inregistreaza tariful masinii</Text>
+                      <View style = {{alignItems:'center'}}>
+                          
+                          <View style = {{marginLeft:20,flexDirection:"row", alignItems:"center"}}>
+                            <TextInput 
+                            style = {{fontSize:20,textAlign:'center' ,borderWidth:1, borderColor:'black',width:100}}
+                            placeholder = 'RON/zi...'
+                            keyboardType='numeric'
+                            value = {price}
+                            onChangeText={setPrice}
+
+                            />
+                            <Text style = {{fontSize: 20, marginLeft:10}}>RON/zi</Text>                          
+                          
+
+                          
+                          </View>
+
+                          
+                          {/* <View style = {{alignItems:"center"}}>
+                            <Text style ={{fontSize:17, marginLeft:5}}>   Doresti sa oferi o reducere pentru utilizatorii care iti inchiriaza masina pentru un anumit numar de zile?</Text>
+                            <View style = {{flexDirection:"row"}}>
+                              <View style={{...styles.checkboxContainer, marginRight:20}}>
+                                <CheckBox
+                                  value={yesDiscount}
+                                  onValueChange={(value)=>{console.log(value); setYesDiscount(value);setNoDiscount(false); value ? setDisplay('flex') : setDisplay('none')}}
+                                  style={styles.checkbox}
+                                />
+                                <Text onPress={()=>{setYesDiscount(!yesDiscount); setNoDiscount(false); !yesDiscount ? setDisplay('flex') : setDisplay('none')}} style={styles.label}>Da</Text>
+                              </View>
+
+                              <View style={{...styles.checkboxContainer, marginLeft:20}}>
+                                <CheckBox
+                                  value={noDiscount}
+                                  onValueChange={(value)=>{setNoDiscount(value);setYesDiscount(false); setDisplay('none')}}
+                                  style={styles.checkbox}
+                                />
+                                <Text onPress={()=>{setNoDiscount(!noDiscount); setYesDiscount(false); setDisplay('none')}} style={styles.label}>Nu</Text>
+                              </View>
+                              </View>
+                        
+                              <View style = {{flexDirection:"row", alignItems:"center",display:display}}>
+                                <Text 
+                                  style = {{fontSize:17, marginRight:10}}
+                                 
+                                >La</Text>
+                                <TextInput
+                                  value = {minDaysDiscount}
+                                  onChangeText = {setMinDaysDiscount}
+                                  style = {{textAlign:"center", fontSize:17,backgroundColor:'white',borderBottomWidth:1, borderBottomColor:"black", borderRadius:10}}
+                                  keyboardType='numeric'
+                                  placeholder='...'
+                                 
+                                
+                                 />
+                                 <Text style = {{fontSize:17, marginRight:10}}> zile minim, oferi reducere </Text>
+                                 <TextInput
+                                 value = {discount}
+                                 onChangeText={setDiscount}
+                                 style = {{textAlign:"center", fontSize:17,backgroundColor:'white',borderBottomWidth:1, borderBottomColor:"black", borderRadius:10}}
+                                 keyboardType='numeric'
+                                 placeholder='...'
+                                 maxLength={2}
+                                 />
+                                 <Text style = {{fontSize:17, marginRight:10}}>%</Text>
+                                 
+                              </View>
+                         
+                         
+                          </View> */}
+                      </View> 
+                  </View>
+                  {/* <View>
+
+                    <Text>PRET/zi - este pretul masinii pentru a fi inchiriata o zi</Text>
+                    <Text>discount - este reducerea oferita celui care inchiriaza daca inchiriaza masina mai mult de un numar stabilit de zile</Text>
+                    <Text>Taxa Rent - este taxa adaugata la PRET/zi care revine platformei Rent pentru intretinerea acesteia</Text>
+                    <Text>TOTAL - este pretul afisat celui care inchiriaza atunci cand cauta o masina (taxa rent fiind inclusa in pretul total)</Text>
+                    
+                  </View> */}
+                  <View style = {{alignSelf:'flex-end', marginRight:10}} >
+                        
+                        
+                        <View>
+                          <Text style = {{textAlign:"right" ,fontSize: 20}}>PRET/zi: {price ? price : '...'} RON</Text> 
+                          {
+                            //retDiscount()
+                          }
+                         
+                            
+                        <Text style = {{textAlign:"right"  ,fontSize: 20}}>taxa Rent 5%: {price ? (5*price/100) : '...'} RON</Text>
+                            <View style = {{width:200, alignSelf:"flex-end"}}>
+                            <Text style = {{textAlign:"right"}}>*Taxa folosita pentru a intretine platforma Rent</Text>
+                            </View>                      
+                            <View style = {{height:1,width:'100%',backgroundColor:"black"}}></View>
+                              <Text style = {{textAlign:"right" ,fontSize: 20}}>TOTAL {totalPriceNoDiscount} RON/zi</Text>
+                            <View  style = {{width:200, alignSelf:"flex-end"}}>
+                              <Text style = {{textAlign:"right", }}>*Pretul total achitat de cel care inchiriaza masina</Text>
+                            </View>
+                          {
+                          //retDiscountText()
+                          }  
+                            
+                          </View>
+                  </View>
+                 
+
+
+
+                  
+                  
+
+
+
+
+                <View style ={{height:200}}></View>
 
 
 

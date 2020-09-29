@@ -19,6 +19,7 @@ import auth from '@react-native-firebase/auth'
 import storage from '@react-native-firebase/storage'
 import database from '@react-native-firebase/database'
 import Loader from '../../CustomComponents/Loader'
+import firestore from '@react-native-firebase/firestore'
 import {SharedElement} from 'react-navigation-shared-element'
 navigator.geolocation = require('@react-native-community/geolocation');
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
@@ -37,12 +38,13 @@ useEffect(()=>{
     const user = auth().currentUser
     setImageKey(route.params.userCar.photos.length) 
     
-    database().ref(`/users/${route.params.userCar.user}`).once('value', snapshot =>{
-        console.log(snapshot.val())
-        setUserName(snapshot.val().displayName)
-        setUserPhoto(snapshot.val().photoURL)
+    firestore().collection('users').doc(`${route.params.userCar.user}`).get().then((result)=>{
+        
+        console.log(result)
+        setUserName(result.data().displayName)
+        setUserPhoto(result.data().photoURL)
     })
-
+    
 
 },[])
 
@@ -61,8 +63,10 @@ const changeIndex = ({nativeEvent}) =>{
 
             
             
-
+                <View>
+                    
                 <ScrollView>
+                    
                         {console.log("route params:",route.params.userCar.photos[0])}
                     <View> 
                     
@@ -97,7 +101,7 @@ const changeIndex = ({nativeEvent}) =>{
                           
                             {console.log("index: ", index)}
                             {console.log('randare flatlist')}
-                            
+                             
                             </View>
                             )
 
@@ -216,6 +220,14 @@ const changeIndex = ({nativeEvent}) =>{
 
                 
                 </ScrollView>
+
+                             
+                    <TouchableOpacity style = {{backgroundColor:"rgba(255,255,255,0.7)",borderRadius:50,position:'absolute', top:30,left:20}} onPress={()=>{navigation.goBack()}}>
+                        <Icon name='arrow-back' size={30} color='black' />
+                    </TouchableOpacity>
+            
+                
+                </View>
                    
           
 

@@ -25,6 +25,8 @@ import { LongPressGestureHandler } from 'react-native-gesture-handler';
 import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database'
+import firestore from '@react-native-firebase/firestore'
+
 
 interface Props {
     
@@ -41,15 +43,17 @@ const PhoneNumber: React.FC<Props> = (props) => {
 
     function changePhone(){
             
-        const update = {} 
+       
         const user = auth().currentUser
         if(user){
             user.updateProfile({
                 phoneNumber: number
             })
-            update[`/users/${user.uid}/phoneNumber`] = number
-            update[`/users/${user.uid}/phoneNumberDisplay`] = isSelected
-            database().ref().update(update)
+    
+            firestore().collection('users').doc(`${user.uid}`).update({
+                phoneNumber: number,
+                phoneNumberDisplay: isSelected
+            })
         }
         
 

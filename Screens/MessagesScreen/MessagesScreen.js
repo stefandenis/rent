@@ -10,23 +10,24 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 const {width, height} = Dimensions.get('window');
 import database from '@react-native-firebase/database'
 import auth from '@react-native-firebase/auth'
-
+import firestore from '@react-native-firebase/firestore';
 
 
 function MessagesScreen() {
 
 
 
-const insert = ()=>{
+const insert = async ()=>{
 
   const user = auth().currentUser
 
-      
-      database().ref(`/users/${user.uid}/listedCars`).set({
-        listedCars: 'salut'
-      })
-
-
+  firestore().collection('listedCars')
+        .where('locality', '==', 'București')
+        .where('user', '==', user.uid)
+        .get()
+        .then( querySnapshot=>{
+            console.log(querySnapshot.data)
+        })
 
 }
 

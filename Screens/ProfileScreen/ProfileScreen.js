@@ -32,7 +32,7 @@ import * as Progress from 'react-native-progress';
 import PhoneNumber from '../../CustomComponents/PhoneNumber'
 import ChangePassword from '../../CustomComponents/ChangePassword'
 import PrivacyPolicy from '../../CustomComponents/PrivacyPolicy'
-
+import firestore from '@react-native-firebase/firestore'
 
 function ProfileScreen( {route,navigation}) {
   const noProfileURL = require('../../images/noPhotoURL.png')
@@ -66,16 +66,14 @@ useEffect(()=>{
   const uid = auth().currentUser.uid
   console.log(user.photoURL)
   
-
-  database()
-        .ref(`/users/${uid}/`)
-        .on('value', snapshot=>{
-          console.log('am intrat in on value')
-          console.log('User data: ', snapshot.val());
-          const displayName_firstName = snapshot.val().displayName.split(' ')[0]
-          const displayName_lastName = snapshot.val().displayName.split(' ')[1]
-          const photoURL = snapshot.val().photoURL
-          const phoneNumber = snapshot.val().phoneNumber
+  firestore().collection('users').doc(`${uid}`).onSnapshot(snapshot => {
+   
+    console.log('am intrat in on value')
+          console.log('User data: ', snapshot.data());
+          const displayName_firstName = snapshot.data().displayName.split(' ')[0]
+          const displayName_lastName = snapshot.data().displayName.split(' ')[1]
+          const photoURL = snapshot.data().photoURL
+          const phoneNumber = snapshot.data().phoneNumber
           if(photoURL){
             if(photoURL.includes('facebook')){
               setPhotoSource({uri:`${photoURL}?type=large`})
@@ -91,7 +89,33 @@ useEffect(()=>{
           
           phoneNumber ? setPhoneNumber(phoneNumber) : setPhoneNumber('no phone number') 
         
-        })
+  })
+
+  // database()
+  //       .ref(`/users/${uid}/`)
+  //       .on('value', snapshot=>{
+  //         console.log('am intrat in on value')
+  //         console.log('User data: ', snapshot.val());
+  //         const displayName_firstName = snapshot.val().displayName.split(' ')[0]
+  //         const displayName_lastName = snapshot.val().displayName.split(' ')[1]
+  //         const photoURL = snapshot.val().photoURL
+  //         const phoneNumber = snapshot.val().phoneNumber
+  //         if(photoURL){
+  //           if(photoURL.includes('facebook')){
+  //             setPhotoSource({uri:`${photoURL}?type=large`})
+  //           }else{
+  //             setPhotoSource({uri:`${photoURL}`})
+  //           }
+  //         }else{
+  //           setPhotoSource(noProfileURL)
+  //         }
+          
+  //         displayName_lastName ? setLastName(displayName_lastName) : setLastName('')
+  //         displayName_firstName ? setFirstName(displayName_firstName) : setFirstName('')
+          
+  //         phoneNumber ? setPhoneNumber(phoneNumber) : setPhoneNumber('no phone number') 
+        
+  //       })
         
 
 
@@ -271,7 +295,7 @@ function goBackToSettings(){
  function changeName(){
 
   
-  const update = {}
+  //const update = {}
   
    auth().currentUser.updateProfile({
     displayName: firstName
@@ -281,10 +305,12 @@ function goBackToSettings(){
         auth().currentUser.reload().then(()=>{
           console.log('in reload  profiel')
           console.log(user.displayName)
-          update[`/users/${user.uid}/displayName`] = `${firstName} ${lastName}`
+          //update[`/users/${user.uid}/displayName`] = `${firstName} ${lastName}`
          
-          
-          database().ref().update(update).then(()=>{console.log('done')})
+          firestore().collection('users').doc(`${user.uid}`).update({displayName: `${firstName} ${lastName}`})
+
+
+          //database().ref().update(update).then(()=>{console.log('done')})
         })
         
     }).catch(()=>{console.log('the name could not be updated')})
@@ -328,10 +354,10 @@ function changeProfilePicture(){
 }
 
 async function uploadImage(){
-  const update = {}
+  
   const { uri } = image;
   const filePath = `${user.uid}/profilePicture`
-  
+  var downloadUrl
   const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
     
   setUploading(true);
@@ -362,13 +388,19 @@ async function uploadImage(){
   setButonColor("gray")
   setDisableUpload(true)
 
-  update[`/users/${user.uid}/photoURL`] = await storage()
-    .ref(filePath)
-    .getDownloadURL();   
-  database().ref().update(update)
+
+  
+  downloadUrl = await storage()
+  .ref(filePath)
+  .getDownloadURL(); 
+    
+    
+  firestore().collection('users').doc(`${user.uid}`).update({photoURL: downloadUrl })
+
+
   auth().currentUser.updateProfile({
-    photoURL: update[`/users/${user.uid}/photoURL`] 
-  }).then(()=>{ setPhotoSource({uri:update[`/users/${user.uid}/photoURL`]})})
+    photoURL: downloadUrl
+  }).then(()=>{ setPhotoSource({uri:downloadUrl})})
  
   
 

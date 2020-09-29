@@ -28,13 +28,13 @@ navigator.geolocation = require('@react-native-community/geolocation');
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
 
 const imageSource = require("../images/background.png")
-
+var favorites = []
 
 function CarInfoCard(props){
 
     const navigation = useNavigation()
-    
-
+    const [isFavorite, setIsFavorite] = useState(false)
+    const [heartColor, setHeartColor] = useState('white')
     useEffect(()=>{
         if(!props.loadingData){
             console.log(props.userCar)
@@ -43,20 +43,42 @@ function CarInfoCard(props){
         console.log("props22:")
         }
     }, [])
+
+
+    function toggleHeart(){
+        
+        setIsFavorite(!isFavorite)
+        !isFavorite ? setHeartColor('red') : setHeartColor('white')
+
+        if(!isFavorite){
+            
+        }
+    }
+
+    
+
     return(
             
             <TouchableOpacity onPress={()=>{navigation.navigate('CarInfoScreen', {userCar: props.userCar})}} style = {{backgroundColor:"black", justifyContent:"center", alignItems:"center", borderRadius:10,overflow:"hidden",marginVertical:5, marginHorizontal:3}}>
-            <SharedElement id = {`${props.userCar.photos[0]}`}>
-                <Image source = {{uri:props.userCar.photos[0]}} style = {{width:"100%", aspectRatio:16/9, height:undefined, resizeMode:"contain"}}  />
-            </SharedElement>
-    
-            <View style = {{position:"absolute", bottom:"5%",right:"5%", backgroundColor:"rgba(255,255,255,0.7)",borderRadius:10}}>
-                <Text style = {{fontSize:width*0.07,paddingHorizontal:5,color:"rgba(0,0,0,1)", fontWeight:"bold"}}>30 RON/zi</Text>                
-            </View>
+                <SharedElement id = {`${props.userCar.photos[0]}`}>
+                    <Image source = {{uri:props.userCar.photos[0]}} style = {{width:"100%", aspectRatio:16/9, height:undefined, resizeMode:"contain"}}  />
+                </SharedElement>
 
-            <View style = {{position:"absolute", backgroundColor:"rgba(255,255,255,0.7)", top:"2%",left:"2%", borderRadius:10}}>
-                <Text style = {{fontSize:width*0.05,paddingHorizontal:5,color:"rgba(0,0,0,1)", fontWeight:"bold"}}>{props.userCar.brand} {props.userCar.model}</Text>
-            </View>
+                <View style = {{position:"absolute", bottom:"5%",right:"5%", backgroundColor:"rgba(255,255,255,0.7)",borderRadius:10}}>
+                    <Text style = {{fontSize:width*0.07,paddingHorizontal:5,color:"rgba(0,0,0,1)", fontWeight:"bold"}}>{props.userCar.price} RON/zi</Text>                
+                </View>
+
+                <View style = {{position:"absolute", backgroundColor:"rgba(255,255,255,0.7)", top:"2%",left:"2%", borderRadius:10}}>
+                    <Text style = {{fontSize:width*0.05,paddingHorizontal:5,color:"rgba(0,0,0,1)", fontWeight:"bold"}}>{props.userCar.brand} {props.userCar.model}</Text>
+                </View>
+
+                <TouchableOpacity 
+                    style =  {{position:"absolute", top:"2%",right:"2%", borderRadius:10}}
+                    onPress = {()=>{toggleHeart();}}
+                >
+                        <Icon name='heart' size={35} color={heartColor}/>
+                </TouchableOpacity>
+            
             </TouchableOpacity>
 
 

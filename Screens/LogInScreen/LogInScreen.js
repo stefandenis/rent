@@ -6,6 +6,8 @@ import auth from '@react-native-firebase/auth';
 import { LoginManager, AccessToken } from 'react-native-fbsdk';
 import database  from '@react-native-firebase/database'
 import Loader from '../../CustomComponents/Loader'
+import firestore from '@react-native-firebase/firestore'
+
 export default function LogInScreen({navigation}){
   
   const [email, setEmail] = useState('');
@@ -92,6 +94,13 @@ export default function LogInScreen({navigation}){
     // Sign-in the user with the credential
     auth().signInWithCredential(facebookCredential).then((UserCredential) => {
       
+
+      firestore().collection('users').doc(`${UserCredential.user.uid}`).set({
+        displayName: UserCredential.user.displayName,
+        email: UserCredential.user.email,
+        photoURL: UserCredential.user.photoURL
+      })
+
       database().ref(`/users/${UserCredential.user.uid}`).set({
         displayName: UserCredential.user.displayName,
         email: UserCredential.user.email,

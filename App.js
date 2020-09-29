@@ -37,6 +37,7 @@ import ListCarFormScreen from './Screens/ListCarFormScreen/ListCarFormScreen'
 import SearchListScreen from './Screens/SearchListScreen/SearchListScreen'
 import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 import CarInfoScreen from './Screens/CarInfoScreen/CarInfoScreen'
+import app from '@react-native-firebase/app'
 
 const {width, height} = Dimensions.get('window')
 
@@ -44,6 +45,8 @@ StatusBar.setBackgroundColor("rgba(0,0,0,0)")
 StatusBar.setBarStyle("light-content")
 StatusBar.setTranslucent(true)
 
+
+app.initializeApp()
 
 const Stack = createSharedElementStackNavigator();
 const TabNavStack = createStackNavigator();

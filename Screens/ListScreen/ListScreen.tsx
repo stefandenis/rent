@@ -6,6 +6,7 @@ import Plus from '../../CustomComponents/Plus'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import database from '@react-native-firebase/database'
 const {width, height} = Dimensions.get('window');
+import firestore from '@react-native-firebase/firestore'
 import {SharedElement} from 'react-navigation-shared-element'
 const ListScreen = ({navigation})=>{
 
@@ -19,24 +20,19 @@ useEffect(()=>{
   
   const user = auth().currentUser
   if(user){
-  database().ref(`/users/${user.uid}/listedCars`)
-  .on('value',snapshot=>{
-    if(snapshot.val()){
-      console.log('cars listed:')
-      console.log(snapshot.val())
-      setListedCars(snapshot.val())
-      console.log("listedCars:",listedCars)
-     
-      
-  
 
-    }else{
-      console.log('no cars listed')
-      setListedCars(null);
-    }
-    
-  })
-}
+    firestore().collection('users').doc(`${user.uid}`).onSnapshot(doc=>{
+      console.log('doc data():', doc.data().listedCars)
+      if(doc.data().listedCars != undefined){
+        setListedCars(doc.data().listedCars)
+        console.log("listedCars:",listedCars)
+      }else{
+        setListedCars(null);
+      }
+    })
+
+
+  }
 
 
 },[])
@@ -51,14 +47,29 @@ useEffect(()=>{
 
 async function getUserCars(){
   const tmp = []
+  var lc;
   for(const listedCar of listedCars){
-    await database().ref(`/listedCars/${listedCar}`).once('value', snapshot => {
-      console.log("userCars in async func: ", userCars)
-      console.log("snapshot:",snapshot.val().brand)
-      tmp.push(snapshot.val())
-      console.log('wait')
-    })
+    console.log('listedCar id in for',listedCar)
 
+    await firestore().collection('listedCars').doc(`${listedCar}`).get().then(querySnapshot=>{
+      tmp.push(querySnapshot.data())
+    })
+    
+    // await firestore().collection('listedCars').doc(`${listedCar}`).get().then(querySnapshot =>{
+    //   console.log('query snapshot exists' , querySnapshot.data())
+      
+    //     console.log("userCars in async func: ", userCars)
+    //     console.log(querySnapshot)
+    //     console.log("snapshot:",querySnapshot.data().brand)
+    //     tmp.push(querySnapshot.data())
+    //     console.log('wait')
+        
+  
+      
+    // })
+    
+  
+    
 }
   setUserCars(tmp)
 
@@ -80,7 +91,9 @@ function carsListed(){
       pagingEnabled
       showsVerticalScrollIndicator={false}
       >
-
+        <View style = {{alignItems:"center",backgroundColor:'rgba(90,128,232,1)', borderBottomLeftRadius:10,borderBottomRightRadius:10}}>
+          <Text style = {{color:'white',fontSize: 30}}>Masinile tale</Text>
+        </View>
         {
         userCars.map((userCar,index)=>{
           console.log('userCars: ', userCars)
@@ -88,9 +101,9 @@ function carsListed(){
             return(
               
               <TouchableOpacity style = {{backgroundColor:"black", margin:5, borderRadius:10, overflow:'hidden'}} onPress = {()=>{navigation.navigate('CarInfoScreen', {userCar})}}>
-               
-                  <Image source={{uri: userCar.photos[0]}} style = {{width:"100%",aspectRatio:16/9,height:undefined, resizeMode:"contain"}}/>
-            
+                  <SharedElement id = {`${userCar.photos[0]}`}>
+                    <Image source={{uri: userCar.photos[0]}} style = {{width:"100%",aspectRatio:16/9,height:undefined, resizeMode:"contain"}}/>
+                  </SharedElement>
               </TouchableOpacity>
 
             )
@@ -134,7 +147,7 @@ return(
     <View style={{...styles.container, backgroundColor:"white"}}>
       
       <ScrollView>
-          
+
           {listedCars ? (carsListed()) : (noCarsListed())}
           
 

@@ -4,6 +4,7 @@ import auth from '@react-native-firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import {userContext} from '../../context/user.context'
 import  database  from '@react-native-firebase/database';
+import firestore from '@react-native-firebase/firestore'
 
 
 
@@ -44,6 +45,14 @@ export default function EmailVerificationScreen({route, name, email, onEmailVeri
         const user = auth().currentUser
         if(isEmailVerified){
             
+            firestore().collection('users').doc(`${user.uid}`).set({
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+                
+            })
+
+
             database().ref(`/users/${user.uid}`).set({
                 displayName: user.displayName,
                 email: user.email,
