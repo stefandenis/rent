@@ -4,13 +4,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useLinkProps, NavigationContainer } from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
 import ImagePicker from 'react-native-image-picker';
-import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
-import { createIconSetFromFontello } from 'react-native-vector-icons';
-import GestureRecognizer from 'react-native-swipe-gestures'
-import  swipeDirections from 'react-native-swipe-gestures'
-import { initialWindowMetrics } from 'react-native-safe-area-context';
-import ChangePassword from '../../CustomComponents/ChangePassword';
-import CarSlideShow from '../../CustomComponents/CarSlideShow';
 import {cars, models} from '../../config/cars'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapView, { PROVIDER_GOOGLE, Marker, LatLng } from 'react-native-maps';
@@ -64,12 +57,12 @@ const ListCarFormScreen: React.FC<Props> = (props) =>{
 
     const [isBenzina, setBenzina] = useState(false)
     const [isMotorina, setMotorina] = useState(false)
-    const [isGaz, setGaz] =useState(false)
+    const [isGaz, setGaz] = useState(false)
     const [isElectricitate, setElectricitate] = useState(false)
     
     const [nrSeats, setNrSeats] = useState(4)
     
-    const seats = [1,2,3,4,5,6,7,8,9,10]
+    const seats = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 
     const [km, setKm] = useState('')
 
@@ -432,7 +425,9 @@ function retDiscount(){
         
           minDays:minDays,
         
-          details: details
+          details: details,
+          stars: 0,
+          trips: 0
 
         })
         firestor().collection('users').doc(`${uid}`).collection('listedCars').get().then( querySnapshot =>{

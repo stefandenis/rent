@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {Dimensions} from 'react-native';
 import SearchBar from '../../CustomComponents/SearchBar';
 import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
@@ -25,20 +25,19 @@ import {
   } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import SearchListScreen from '../SearchListScreen/SearchListScreen';
+import firestore from '@react-native-firebase/firestore'
+
+
 const idSearch = 1;
 
 function SearchScreen({navigation}) {
-    
 
- 
- 
   const [search, setSearch] = useState('');
-  
+
 function pressHandler(){
-
   navigation.navigate("List")
-
 }
+
 
 
 
@@ -53,10 +52,7 @@ function pressHandler(){
               <View styles={styles.imageContainer} >
               
                   <ImageBackground source={image} style={styles.image} imageStyle={imgStyle}>
-                     
-                 
-                     
-
+             
                         <SearchBar
                           placeholder="Current Location/City"
                           onChangeText={(search)=>setSearch(search)}

@@ -11,13 +11,14 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { LongPressGestureHandler } from 'react-native-gesture-handler';
 import {useNavigation} from '@react-navigation/native';
 import {ProfileScreen} from '../Screens/ProfileScreen/ProfileScreen'
+import {SharedElement} from 'react-navigation-shared-element'
 function CarPreviewBox(props){
 
     const navigation = useNavigation();
 
     const pressHandler = ()=>{
-
-    navigation.navigate('Test',{carName: props.carName})
+        console.log('props',props.userCar)
+    navigation.navigate('CarInfoScreen',{carId: props.carId, userCar: props.carData})
 }
     return(
 
@@ -25,10 +26,11 @@ function CarPreviewBox(props){
             
             <TouchableOpacity  onPress={() => pressHandler()
             }>  
+                <SharedElement id = {`${props.carData.photos[0]}`}>
                 <View style={styles.imageContainer}>
                  
  
-                    <ImageBackground source={props.source} style = {styles.imageStyle} imageStyle={{borderRadius: 20}}>
+                    <ImageBackground source={{uri: props.source}} style = {styles.imageStyle} imageStyle={{borderRadius: 20}}>
                         <View style={styles.infoContainer}> 
                     
                             <View style = {styles.starsContainer}>
@@ -37,15 +39,16 @@ function CarPreviewBox(props){
                                 <View style = {styles.iconContainer}>
                                     <Icon name={"star"} size={23} color={"rgba(250, 153, 0,1)"} />
                                 </View>
-                                <Text style = {styles.tripsStyle}>{`(in ${props.trips} trips)`}</Text>
+                                <Text style = {styles.tripsStyle}>{`(in ${props.trips} calatorii)`}</Text>
                             </View>
                     
                     
-                                <Text style = {styles.textStyle}>{`${props.price}$/day`}</Text>
+                                <Text style = {styles.textStyle}>{`${props.price}RON/zi`}</Text>
                         </View>
 
                     </ImageBackground>
                 </View>
+                </SharedElement>
             
             </TouchableOpacity>
  
@@ -90,7 +93,8 @@ const styles = StyleSheet.create({
             
             width:width/1.3,
             height:undefined,
-            aspectRatio: 16/9
+            aspectRatio: 16/9,
+           
         
 
         },

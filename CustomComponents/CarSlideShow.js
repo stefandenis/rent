@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import {
 
     ImageBackground, View,StyleSheet,Dimensions,Text,FlatList,TouchableOpacity
@@ -9,13 +9,31 @@ import CarPreviewBox from './CarPreviewBox'
 const {width, height} = Dimensions.get('window');
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import firestore from '@react-native-firebase/firestore'
 
 
 
-
-function CarSlideShow(){
+function CarSlideShow(props){
     
-    
+    const [youMightLikeCars, setYouMightLikeCars] = useState([])
+
+useEffect(()=>{
+
+        var cars = [];
+        var carObject = {}
+        firestore().collection(`listedCars`).limit(5).get().then(querySnapshot=>{
+          querySnapshot.forEach(doc=>{
+            carObject[`${doc.id}`] = doc.data() 
+            cars.push(carObject)
+            carObject = {}
+          })
+        
+          setYouMightLikeCars(cars)
+          })
+      },[])
+        
+
+
     const carsExample = [
         {key:'1',stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
         {key:'2',stars:4.5, trips:45, price:100, carName:"Lamborghini Aventador",  source: require('../images/lambo.jpg')},
@@ -39,14 +57,15 @@ function CarSlideShow(){
           
               <FlatList 
                 contentContainerStyle={styles.slideShow}
+                keyExtractor = {(item, index) => `${Object.keys(item)}`}
                 horizontal = {true}
-                data={carsExample}
+                data={youMightLikeCars}
                 ItemSeparatorComponent={
                     () => <View style={{ width: "0.5%" }}/>
                 }
                 showsHorizontalScrollIndicator={false}
                 renderItem = { ({item}) => (
-                <CarPreviewBox stars = {item.stars} trips={item.trips} price={item.price} carName={item.carName} source={item.source}/> 
+                <CarPreviewBox carId={Object.keys(item)} carData = {item[Object.keys(item)]}  stars = {item[Object.keys(item)].stars} trips={item[Object.keys(item)].trips} price={item[Object.keys(item)].price} carName={`${item[Object.keys(item)].brand} ${item[Object.keys(item)].model}`} source={item[Object.keys(item)].photos[0]}/> 
                 )}  
                 
                 

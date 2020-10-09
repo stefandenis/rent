@@ -22,6 +22,7 @@ import Loader from '../../CustomComponents/Loader'
 import {SharedElement} from 'react-navigation-shared-element'
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore'
 
 
 navigator.geolocation = require('@react-native-community/geolocation');
@@ -35,14 +36,30 @@ function CarInfoCard(props){
     const navigation = useNavigation()
     const [isFavorite, setIsFavorite] = useState(false)
     const [heartColor, setHeartColor] = useState('white')
+   
     useEffect(()=>{
-        if(!props.loadingData){
-            console.log(props.userCar)
-            console.log(props.loadingData)
-            console.log(props.string)
-        console.log("props22:")
-        }
-    }, [])
+      
+        const user = auth().currentUser
+        setHeartColor('white')
+        setIsFavorite(false)
+        
+        if(props.carId)
+            firestore().collection('users').doc(`${user.uid}`).get().then(querySnapshot => {
+                
+                if(querySnapshot.data().favorites){
+                   
+                    querySnapshot.data().favorites.forEach((value)=>{
+                        if(value.carId == props.carId){
+                            
+                            setHeartColor('red')
+                            setIsFavorite(true)
+                           
+                        }
+                    })
+                }
+            })
+
+    },[props.carId,props.triggerReRender])
 
 
     function toggleHeart(){
@@ -50,9 +67,9 @@ function CarInfoCard(props){
         setIsFavorite(!isFavorite)
         !isFavorite ? setHeartColor('red') : setHeartColor('white')
 
-        if(!isFavorite){
-            
-        }
+       
+        props.receiveFavorites(props.index,!isFavorite)
+        
     }
 
     

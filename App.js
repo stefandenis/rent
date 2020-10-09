@@ -37,7 +37,9 @@ import ListCarFormScreen from './Screens/ListCarFormScreen/ListCarFormScreen'
 import SearchListScreen from './Screens/SearchListScreen/SearchListScreen'
 import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 import CarInfoScreen from './Screens/CarInfoScreen/CarInfoScreen'
-import app from '@react-native-firebase/app'
+import FavoriteCarsScreen from './Screens/FavoriteCarsScreen/FavoriteCarsScreen'
+import firestore from '@react-native-firebase/firestore'
+
 
 const {width, height} = Dimensions.get('window')
 
@@ -46,7 +48,7 @@ StatusBar.setBarStyle("light-content")
 StatusBar.setTranslucent(true)
 
 
-app.initializeApp()
+
 
 const Stack = createSharedElementStackNavigator();
 const TabNavStack = createStackNavigator();
@@ -349,20 +351,18 @@ function App(){
   const [user, setUser] = useState()
   const [initializing, setInitializing] = useState(false)
   const [loading, setLoading] = useState(true)
-  
+  const [youMightLikeCars,setYouMightLikeCars] = useState([])
   useEffect(()=>{
     SplashScreen.hide();
     const subscribe = onAuthStateChange(setUser)
     setLoading(false)
-    return ()=>{
-
-     
+   
+    
+    return ()=>{ 
       subscribe();
     }
   },[])
-  
 
-  console.log(user)
 
 
 
@@ -371,8 +371,7 @@ function App(){
       console.log("utilizatorul a fost refreshuit")
   }
 
-  if(initializing) {return(<SplashScreen/>)}
-  else{
+  
   return(
     
     <UserProvider value={{user, refreshUser}}>
@@ -422,14 +421,14 @@ function App(){
               return [`${userCar.photos[0]}`];
             }}
           />
-          
+          <RootStack.Screen options = {{headerShown: false }} name = "FavoriteCarsScreen" component = {FavoriteCarsScreen}/> 
         </RootStack.Navigator>
 
     </NavigationContainer>
     </UserProvider>
     
   );
-}
+
 
     
   }

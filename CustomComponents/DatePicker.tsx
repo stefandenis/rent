@@ -1,32 +1,10 @@
 import React, {useEffect, useState, useRef} from 'react'
 import {Text, View,Image, StyleSheet, FlatList,ScrollView, CheckBox, TextInput, Animated, TouchableNativeFeedback, Dimensions, TouchableOpacity, InteractionManager, Picker, Alert, Share } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useLinkProps, NavigationContainer } from '@react-navigation/native';
-const {width, height} = Dimensions.get('window');
-import ImagePicker from 'react-native-image-picker';
-import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
-import { createIconSetFromFontello } from 'react-native-vector-icons';
-import GestureRecognizer from 'react-native-swipe-gestures'
-import  swipeDirections from 'react-native-swipe-gestures'
-import { initialWindowMetrics } from 'react-native-safe-area-context';
-import ChangePassword from '../../CustomComponents/ChangePassword';
-import CarSlideShow from '../../CustomComponents/CarSlideShow';
-import {cars, models} from '../../config/cars'
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import MapView, { PROVIDER_GOOGLE, Marker, LatLng } from 'react-native-maps';
-import Geocoder from 'react-native-geocoder';
-import auth from '@react-native-firebase/auth'
-import storage from '@react-native-firebase/storage'
-import database from '@react-native-firebase/database'
-import Loader from '../../CustomComponents/Loader'
-import {SharedElement} from 'react-navigation-shared-element'
-import CarInfoCard from '../../CustomComponents/CarInfoCard';
-import functions from '@react-native-firebase/functions'
 import CalendarPicker from 'react-native-calendar-picker';
 import TextInputCustom from './textinput'
-import Svg, {Circle, G, Path, Rect} from 'react-native-svg'
 
-
+const {width, height} = Dimensions.get('window');
 
 function DatePicker(props){
 

@@ -20,14 +20,7 @@ function MessagesScreen() {
 const insert = async ()=>{
 
   const user = auth().currentUser
-
-  firestore().collection('listedCars')
-        .where('locality', '==', 'București')
-        .where('user', '==', user.uid)
-        .get()
-        .then( querySnapshot=>{
-            console.log(querySnapshot.data)
-        })
+ 
 
 }
 
