@@ -1,5 +1,5 @@
 import React, {useEffect, useState,useRef} from 'react'
-import {Text, View,Image, StyleSheet, FlatList,ScrollView, CheckBox, TextInput, Animated, TouchableNativeFeedback, Dimensions, TouchableOpacity, InteractionManager, Picker, Alert } from 'react-native'
+import {Text, View,Image, StyleSheet, FlatList,ScrollView,Modal, CheckBox, TextInput, Animated, TouchableNativeFeedback, Dimensions, TouchableOpacity, InteractionManager, Picker, Alert, TouchableWithoutFeedback } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useLinkProps, NavigationContainer } from '@react-navigation/native';
 const {width, height} = Dimensions.get('window');
@@ -20,9 +20,16 @@ import storage from '@react-native-firebase/storage'
 import database from '@react-native-firebase/database'
 import Loader from '../../CustomComponents/Loader'
 import firestore from '@react-native-firebase/firestore'
+import CalendarPicker from 'react-native-calendar-picker';
+import TextInputCustom from '../../CustomComponents/textinput'
 import {SharedElement} from 'react-navigation-shared-element'
 navigator.geolocation = require('@react-native-community/geolocation');
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
+
+
+
+
+
 
 
 function CarInfoScreen( {navigation, route}){
@@ -32,7 +39,14 @@ function CarInfoScreen( {navigation, route}){
     const [userPhoto, setUserPhoto] = useState()
     const [userName, setUserName] = useState('user user')
     const [address, setAddress] = useState()
+    const [modalVisibleDate, setModalVisibleDate] = useState(false)
     const mapRef = useRef()
+    const minDate = new Date(); // Today
+    const [startDate, setStartDate] = useState('Selecteaza o data');
+    const [endDate, setEndDate] = useState('Selecteaza o data');
+    const [startHour, setStartHour] = useState();
+    const [endHour, setEndHour] = useState();
+    const [modalVisibleHour, setModalVisibleHour] = useState(false);
 
 useEffect(()=>{
     const user = auth().currentUser
@@ -59,17 +73,192 @@ const changeIndex = ({nativeEvent}) =>{
 
 
 
+function bookCar(){
+    const user = auth().currentUser
+    if(route.params.rentDate == undefined && ((startDate == 'Selecteaza o data' || endDate == 'Selecteaza o data') || (startHour == undefined || endHour == undefined))){
+        setModalVisibleDate(true)
+    }else{
+        
+        firestore().collection('users').doc(`${user.uid}`).collection('messages').add({
+            type: 'carRequest',
+            from:`${user.uid}`,
+            carId:`${route.params.carId}`,
+            seen:false,
+            details: {
+              startDate: startDate,
+              endDate: endDate,
+              startHour: startHour,
+              endHour: endHour,
+
+             
+              
+            }
+        
+          })
+        console.log('navigate to checkout')
+    }
+
+
+}
+
+
+function onDateChange(date,type){
+    console.log(date)
+    if(date){
+        var day = (date['_i'].day <= 9) ? `0${date['_i'].day}` : date['_i'].day
+        var month = (date['_i'].month <= 9) ? `0${date['_i'].month}` : date['_i'].month ;
+        var year = date['_i'].year;
+        var finalDate = `${day}-${month}-${year}`;
+    }
+    if (type === 'END_DATE') {
+        setEndDate(finalDate);
+        
+    } else {
+        console.log('start date: ', finalDate)
+        setStartDate(finalDate);
+        setEndDate('Selecteaza o data;');   
+    }
+}
+
+
+
+function openModalHour(){
+    setModalVisibleDate(false)
+    setModalVisibleHour(true)
+
+
+}
+
         return(
 
             
             
                 <View>
+
                     
                 <ScrollView>
                     
                         {console.log("route params:",route.params.userCar.photos[0])}
                     <View> 
+                    <Modal
+                        
+                        transparent={true}
+                        visible={modalVisibleDate}
+                        animationType='fade'
+                        statusBarTranslucent={true}
+                        onRequestClose={() => {
+                        Alert.alert("Modal has been closed.");
+                        setModalVisibleDate(false);
+                        }}
+                    >
+                        <TouchableOpacity style = {{backgroundColor:"rgba(1,1,1,0.3)",width:width,height:height,justifyContent: 'center', alignItems:'center'}} onPress={()=>{setModalVisibleDate(false)}}>
+                            <TouchableWithoutFeedback
+                            
+                           
+                            style = {{backgroundColor:"white", justifyContent:"center", alignItems:"center", borderRadius:10,elevation:10,zIndex:1}}>
+                            
+                            <View style = {{backgroundColor:"white", borderRadius:10, width:width*0.9,}}>                                
+                                <View style = {{backgroundColor:"#171F33",borderTopLeftRadius:10,borderTopRightRadius:10, justifyContent:"center", alignItems:"center"}}>
+                                    <Text style = {{fontSize:22, color:'white', marginHorizontal:10, marginVertical:7}}>Selecteaza perioada de inchiriere</Text>
+                                    
+                                </View> 
+                                <View style = {{}}>
+                                    <CalendarPicker
+                                        minDate = {minDate}
+                                        allowRangeSelection={true}
+                                        weekdays={['Du', 'Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sa']}
+                                        previousTitle="<"
+                                        nextTitle="Próximo"
+                                        months={['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie']}
+                                        previousComponent={<Icon name='arrow-back' size={25} color='black' />}
+                                        nextComponent={<Icon name='arrow-forward' size={25} color='black' />}
+                                        todayBackgroundColor="#f2e6ff"
+                                        selectedDayColor='rgb(138,199,253)'
+                                        selectedDayTextColor="#FFFFFF"
+                                        height={height*0.5}
+                                        
+                                        onDateChange={(date,type)=>{onDateChange(date,type)}}
+                                    />
+
+                                </View>
+                                <View style = {{justifyContent:"center", alignItems:"center"}}>
+                                    <Text>Data ridicare: {startDate}</Text>
+                                    <Text>Data returnare: {endDate}</Text>
+                                </View>
+                                
+                                <View style = {{justifyContent:"center", alignItems:"center", marginVertical:10}}>
+                                    <TouchableOpacity 
+                                    style = {{width:width*0.9*0.5,justifyContent:"center", alignItems:"center",borderRadius:20, backgroundColor:"rgb(138,199,253)"}}
+                                    onPress = {()=>{openModalHour()}}
+                                    >
+                                        <Text style = {{fontSize:16, color:"black"}}>Selecteaza ora</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                
+
+                                </View>
+
+                                </TouchableWithoutFeedback>
+                        </TouchableOpacity>
+                    </Modal>    
+                
+                    <Modal
+                        
+                        transparent={true}
+                        visible={modalVisibleHour}
+                        animationType='fade'
+                        statusBarTranslucent={true}
+                        onRequestClose={() => {
+                        
+                        setModalVisibleHour(false);
+                        }}
+                    >
+                        <TouchableOpacity style = {{backgroundColor:"rgba(1,1,1,0.3)",width:width,height:height,justifyContent: 'center', alignItems:'center'}} onPress={()=>{setModalVisibleHour(false)}}>
+                            <TouchableWithoutFeedback                         
+                            style = {{backgroundColor:"white", justifyContent:"center", alignItems:"center", borderRadius:10,elevation:10,zIndex:1}}>
+                            
+                            <View style = {{backgroundColor:"white", borderRadius:10, width:width*0.9,}}>                                
+                                
+                                <View style = {{backgroundColor:"#171F33",borderTopLeftRadius:10,borderTopRightRadius:10, justifyContent:"center", alignItems:"center"}}>
+                                    <Text style = {{fontSize:22, color:'white', marginHorizontal:10, marginVertical:7, textAlign:"center"}}>Selecteaza ora de ridicare si returnare</Text>
+                                    
+                                </View> 
+
+                                                         
+                                    <View style = {{flexDirection:"row", alignItems:"center",justifyContent:"center",marginTop:5}}>
+                                        <Text style ={{fontSize:20}}>Ridicare la ora:    </Text>
+                                        
+                                        
+                                        <TextInputCustom getHour = {(v)=>{setStartHour(v)}}/>
+                                    </View>
+                                
+                                    
+                                    <View style = {{height:0.2,width:width*0.9, backgroundColor:"black",marginVertical:5}}></View>
+                                    
+                                    <View style = {{flexDirection:"row", alignItems:"center",justifyContent:"center"}}>
+                                        <Text style ={{fontSize:20}}>Returnare la ora: </Text>
+                                       
+                                    
+                                        <TextInputCustom getHour = {(v)=>{setEndHour(v)}}/>
+
+                                    </View>
+                                
+                                    <View style = {{justifyContent:"center", alignItems:"center", marginVertical:10}}>
+                                        <TouchableOpacity 
+                                        style = {{width:width*0.9*0.5,justifyContent:"center", alignItems:"center",borderRadius:20, backgroundColor:"rgb(138,199,253)"}}
+                                        onPress = {()=>{bookCar()}}
+                                        >
+                                            <Text style = {{fontSize:16, color:"black"}}>Inchiriaza</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                
+                                </View>
+                            
+                            </TouchableWithoutFeedback>
+                        </TouchableOpacity>
+                    </Modal>
                     
+
                     <ScrollView
                     
                     horizontal
@@ -125,7 +314,7 @@ const changeIndex = ({nativeEvent}) =>{
                         
 
                         
-
+                        
 
                 </View>
             
@@ -161,7 +350,27 @@ const changeIndex = ({nativeEvent}) =>{
                     <View style = {styles.boxInfo}>
                         <Text style = {{fontSize:25,paddingVertical:10}}>Masina se afla in: {route.params.userCar.locality}</Text>
                     </View>
-                </View>    
+                </View>
+
+                <View style = {{alignItems:"center"}}>      
+                   
+                        {
+                            route.params.userCar.details ? (
+                                <View style = {styles.detailsBox}>
+                                    <Text style = {{fontSize:25,paddingVertical:10}}>Detalii:</Text>
+                                    <Text> {route.params.userCar.details}</Text>
+                                </View>
+                            ):
+                            (
+                                <View></View>
+                            )
+                        }
+                    
+                    
+                </View>
+
+
+
                     <MapView
                           style={styles.map}
                           ref = {mapRef}
@@ -198,23 +407,43 @@ const changeIndex = ({nativeEvent}) =>{
 
 
 
-                
-                <View style = {{}}>
+          
                     
-                    <View style = {{...styles.profilePicBorder}}>
-                        <Image source={{uri: userPhoto}} style={styles.profilePic}/>
-                    </View>
-                    
-                      
-                    
+                    <View style  = {{flexDirection:"row"}}>
+                        <View style = {{...styles.profilePicBorder}}>
+                            <Image source={{uri: userPhoto}} style={styles.profilePic}/>
+                        </View>
                         
-                    
-                    <View style = {{justifyContent:"center",alignItems:"center",width:width*0.23+8}}>
-                    <Text style = {{fontSize:20}}>{userName.split(' ')[0]}</Text>
-                    </View>   
-                        
-                </View>
+                        <View style = {{ flex:1,flexWrap:"wrap",justifyContent:"center", alignItems:"center",}}>
+                            <Text style = {{fontSize:18}}>Masina oferita de: {userName.split(' ')[0]}</Text>   
+                            {
+                                route.params.userCar.trips ? (
+                                    <Text style = {{fontSize:20}}>Aceasta masina a obtinut {route.params.userCar.stars} ⭐️ in {route.params.userCar.trips} calatorii</Text>
+                                ) :
+                                (
+                                    <Text style = {{fontSize:20,textAlign:"center"}}>Fii primul care calatoreste cu aceasta masina</Text>
+                                )
 
+                                
+                            }
+                            
+                            
+                        </View>
+                    </View>
+                    <View style = {{justifyContent:"center", alignItems:'center'}}>
+                        <TouchableOpacity style ={styles.bookCarButton} onPress={()=>{bookCar()}}>
+                            <View>
+                                <Text style = {{fontSize:50/2.5}}>Inchiriaza</Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                      
+               
+                    <View>
+
+                        
+                   
+                    </View>
                 
                 
 
@@ -326,8 +555,35 @@ const styles = StyleSheet.create({
             
             elevation: 18,
             borderRadius:10
+        },
+        bookCarButton:{
+            width:width/1.5,
+            backgroundColor:"rgb(138,199,253)",
+            borderRadius:25,
+            height:50,
+            alignItems:"center",
+            justifyContent:"center",
+            marginTop:20,
+            marginBottom:10
+        },
+        detailsBox:{
+            justifyContent:"center",
+            
+            margin:10,
+            backgroundColor:"white",
+            width:"90%",
+            borderWidth:0.5,
+            shadowColor: "#000",
+            shadowOffset: {
+                width: 0,
+                height: 9,
+            },
+            shadowOpacity: 0.48,
+            shadowRadius: 11.95,
+            
+            elevation: 18,
+            borderRadius:10    
         }
-      
      
      
     

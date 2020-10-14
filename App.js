@@ -39,7 +39,7 @@ import { createSharedElementStackNavigator } from 'react-navigation-shared-eleme
 import CarInfoScreen from './Screens/CarInfoScreen/CarInfoScreen'
 import FavoriteCarsScreen from './Screens/FavoriteCarsScreen/FavoriteCarsScreen'
 import firestore from '@react-native-firebase/firestore'
-
+import MessageBody from './Screens/MessagesScreen/MessageBody'
 
 const {width, height} = Dimensions.get('window')
 
@@ -127,10 +127,14 @@ const SearchStack = () =>(
 const MessagesStack = ()=>{
 
 
-  const {user, refreshUser} = useContext(userContext);
+  const {user, refreshUser, unseenMessagesCount} = useContext(userContext);
   const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false)
+
+useEffect(()=>{
+  console.log(unseenMessagesCount)
+},[])
 
 
   async function re_render(isEmailVerified){
@@ -148,7 +152,8 @@ const MessagesStack = ()=>{
       if(user.emailVerified || emailVerified || user.providerData[0].providerId == 'facebook.com'){
         return(
           <Stack.Navigator>
-          <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/>  
+          <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/> 
+          <Stack.Screen options = {{headerShown:false}} name = 'MessageBody' component = {MessageBody}/> 
           </Stack.Navigator>
         )
   
@@ -293,6 +298,9 @@ const ProfileStack = ({route})=>{
 
 
 function TabNavScreen(){
+  const {user, refreshUser, unseenMessagesCount} = useContext(userContext);
+
+
 
 return(
   <Tab.Navigator
@@ -300,19 +308,39 @@ return(
   screenOptions={({ route }) => ({
     tabBarIcon: ({ focused, color, size }) => {
       let iconName;
-
+      let display;
       if (route.name === 'Search') {
-        iconName = 'search';
-      } else if (route.name === 'Messages') {
-        iconName ='chatbox';
+        return(
+          <Icon name={'search'} size={40} color={color} />
+        )
+      } else if (route.name === 'Messages' && unseenMessagesCount != 0) {
+         return(
+          <View style = {{}}>
+            <View style = {{position:'absolute',zIndex:1,right:0,top:0}}>
+              <View style = {{justifyContent:"center", alignItems:"center",backgroundColor:"orange", borderRadius:50,paddingHorizontal:5}}>
+                <Text style = {{fontWeight:"bold" ,fontSize:15,color:'white', textDecorationStyle:'solid'}}>{unseenMessagesCount}</Text>
+              </View>
+            </View>
+            <Icon name={'chatbox'} size={40} color={color} />
+          </View>
+          )
+      
+      } else if(route.name === 'Messages' && unseenMessagesCount == 0){
+        return(
+          <Icon name={'chatbox'} size={40} color={color} />
+        )
       } else if (route.name === 'List') {
-        iconName ='car';
+        return(
+          <Icon name={'car'} size={40} color={color} />
+        )
       } else if (route.name === 'Profile') {
-        iconName ='person';
+        return(
+          <Icon name={'person'} size={40} color={color} />
+        )
       }
 
-      // You can return any component that you like here!
-      return <Icon name={iconName} size={40} color={color} />;
+      
+     
     },
   })}
   tabBarOptions={{
@@ -352,9 +380,28 @@ function App(){
   const [initializing, setInitializing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [youMightLikeCars,setYouMightLikeCars] = useState([])
+  const [unseenMessagesCount , setUnseenMessagesCount] = useState(0)
+  const [messagesObject, setMessagesObject] = useState([])
   useEffect(()=>{
+    const user = auth().currentUser
+    var messageCount = 0;
+    var mesObj = {}
+    var mesArray=[]
     SplashScreen.hide();
     const subscribe = onAuthStateChange(setUser)
+    firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
+      messageCount = 0;
+      mesArray = []
+      mesObj = {}
+      querySnapshot.forEach(doc => {
+        mesArray.push({messageId:doc.id, messageBody: doc.data()})
+        if(doc.data().seen == false){
+          messageCount += 1;
+        }
+    });
+    setUnseenMessagesCount(messageCount)
+    setMessagesObject(mesArray)
+    })
     setLoading(false)
    
     
@@ -362,6 +409,10 @@ function App(){
       subscribe();
     }
   },[])
+
+ 
+
+
 
 
 
@@ -374,10 +425,10 @@ function App(){
   
   return(
     
-    <UserProvider value={{user, refreshUser}}>
+    <UserProvider value={{user, refreshUser, unseenMessagesCount, messagesObject}}>
       <Loader loading={loading}/>
       <NavigationContainer>
-          <RootStack.Navigator mode="modal" >
+          <RootStack.Navigator  >
           
               <RootStack.Screen options={{headerShown: false}} name="TabNav"  component={TabNavStackScreen} />
               <RootStack.Screen options={{headerShown: false}} name="LogIn" component={LogInScreen}/> 
