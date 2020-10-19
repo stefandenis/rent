@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import TermsAndConditions from '../../CustomComponents/TermsAndConditions'
+
 import {
   Text, 
   View, 
@@ -33,6 +34,7 @@ import PhoneNumber from '../../CustomComponents/PhoneNumber'
 import ChangePassword from '../../CustomComponents/ChangePassword'
 import PrivacyPolicy from '../../CustomComponents/PrivacyPolicy'
 import firestore from '@react-native-firebase/firestore'
+import { backgroundColor } from '../../colors';
 
 function ProfileScreen( {route,navigation}) {
   const noProfileURL = require('../../images/noPhotoURL.png')
@@ -705,7 +707,7 @@ const styles = StyleSheet.create({
     flex:1,
     alignItems:"center",
     justifyContent:"flex-end",
-    backgroundColor:"white"
+    backgroundColor:backgroundColor
 
   },
   infoContainer:{

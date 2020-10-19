@@ -5,7 +5,7 @@ export interface UserContext {
     user: firebase.User | null,
     refreshUser: () => void;
     unseenMessagesCount: number;
-    messages: Array;
+    messages: Array<object>;
 }
 
 export const USER_DEFAULT_VALUE ={

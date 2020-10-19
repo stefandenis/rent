@@ -280,7 +280,7 @@ function removeFilter(filterOption,index){
                                             
                     styles = {{
                         textInputContainer:{
-                            backgroundColor:"rgb(138,199,253)",
+                            backgroundColor:"#1b2642",
                             borderTopWidth: 0,
                             borderBottomWidth: 0,
                             height:MAX_HEIGHT_SEARCHBAR,
@@ -310,7 +310,39 @@ function removeFilter(filterOption,index){
 
                     </Animated.View>                                   
                         
-                        <View
+                        <ScrollView
+                        style = {{marginHorizontal:"1.5%", marginTop:"1.5%"}}
+                        horizontal = {true}
+                        >   
+                            {
+                                filterOptions.map((filterOption,index)=>{
+
+                                    return(
+                                        
+                                            <TouchableOpacity 
+                                                style = {{flexDirection:'row',alignItems:"center", backgroundColor:"#1f1d36", borderRadius:10, paddingHorizontal:5, marginHorizontal:5, marginVertical:2}}
+                                                onPress = {()=>{removeFilter(filterOption,index)}}
+                                                >
+                                            
+                                                    <Text style = {{fontSize:20 ,color:'white'}}>{Object.values(filterOption)}</Text>
+                                                
+                                                    <View style = {{backgroundColor:'rgba(191, 191, 191, 0.3)', borderRadius:40, marginLeft:4}}>
+                                                        <Icon name={'close'} color={'white'} size={15} />
+                                                    </View>
+
+
+                                            </TouchableOpacity>
+                                    
+                                    )
+
+                                })
+                            }
+                            
+                        </ScrollView>
+                    
+
+
+                        {/* <View
                         onLayout={(event) => {
                             var {x, y, width, height} = event.nativeEvent.layout;
                             setFilterItemsHeight(height)
@@ -341,7 +373,7 @@ function removeFilter(filterOption,index){
 
                                 })
                             }
-                        </View>
+                        </View> */}
                         <View>    
                      
                                             
@@ -377,7 +409,7 @@ function removeFilter(filterOption,index){
                         height:50,
                         width:50,
                         borderRadius:50, 
-                        backgroundColor:"rgb(138,199,253)",
+                        backgroundColor:"#1b2642",
                         justifyContent:"center",
                         alignItems:"center",
                         
@@ -404,7 +436,7 @@ function removeFilter(filterOption,index){
                                 height:50,
                                 width:50,
                                 borderRadius:50, 
-                                backgroundColor:"rgb(138,199,253)",
+                                backgroundColor:"#1b2642",
                                 justifyContent:"center",
                                 alignItems:"center"
                             }}
@@ -426,7 +458,7 @@ function removeFilter(filterOption,index){
                 {/* iconita calendar */}   
                 <Animated.View style = {{position:'absolute', right:"2%", top:calendarTopPosition}}>
                 <TouchableOpacity onPress = {()=>{console.log('am apasat'); setIsDroped(true)}}>
-                    <Image source = {require('../../images/pngwave.png')} style = {{height:60,width:60}}/>
+                    <Image source = {require('../../images/calendar2.png')} style = {{height:60,width:60}}/>
                 </TouchableOpacity>
                 </Animated.View>
 
@@ -438,18 +470,24 @@ function removeFilter(filterOption,index){
                                 style = {{
                                     
                                     borderRadius:50, 
-                                    backgroundColor:"rgb(138,199,253)",
+                                    backgroundColor:"#1b2642",
                                     justifyContent:"center",
                                     alignItems:"center",
                                     position:"absolute",
                                     bottom:"5%",
                                     left:"5%",
                                     elevation:5,
-                                    paddingHorizontal:10
+                                 
+                                    height:50,
+                                    width:50,
+                                    paddingTop:"3%"
+                                    
+                              
+                                    
                                 }}
                                 onPress = {()=>{navigation.navigate('FavoriteCarsScreen', {reRenderSearchList: (triggerNumber)=>{setTriggerReRender(triggerNumber)}})}}>
 
-                                <Text style = {{fontSize:25, color:"white"}}>Favorite</Text> 
+                                    <Icon name='heart' size={35} color='white' />
                                     
                             </TouchableOpacity>       
             </View>

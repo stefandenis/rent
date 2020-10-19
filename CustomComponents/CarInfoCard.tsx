@@ -76,7 +76,7 @@ function CarInfoCard(props){
 
     return(
             
-            <TouchableOpacity onPress={()=>{navigation.navigate('CarInfoScreen', {userCar: props.userCar})}} style = {{backgroundColor:"black", justifyContent:"center", alignItems:"center", borderRadius:10,overflow:"hidden",marginVertical:5, marginHorizontal:3}}>
+            <TouchableOpacity onPress={()=>{navigation.navigate('CarInfoScreen', {carId: props.carId,userCar: props.userCar})}} style = {styles.boxContainer}>
                 <SharedElement id = {`${props.userCar.photos[0]}`}>
                     <Image source = {{uri:props.userCar.photos[0]}} style = {{width:"100%", aspectRatio:16/9, height:undefined, resizeMode:"contain"}}  />
                 </SharedElement>
@@ -109,8 +109,24 @@ function CarInfoCard(props){
 export default CarInfoCard
 
 const styles = StyleSheet.create({
+    boxContainer:{
+        backgroundColor:"black",
+        justifyContent:"center", 
+        alignItems:"center", 
+        borderRadius:10,
+        overflow:"hidden",
+        marginVertical:"3%", 
+        marginHorizontal:"3.5%",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.29,
+        shadowRadius: 4.65,
 
-
+        elevation: 7,
+    }
 
 
 })

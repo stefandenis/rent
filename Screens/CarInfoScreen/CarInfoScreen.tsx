@@ -47,6 +47,7 @@ function CarInfoScreen( {navigation, route}){
     const [startHour, setStartHour] = useState();
     const [endHour, setEndHour] = useState();
     const [modalVisibleHour, setModalVisibleHour] = useState(false);
+    const [dateSelectedNotAvailable,setDateSelectedNotAvailable] = useState(false)
 
 useEffect(()=>{
     const user = auth().currentUser
@@ -72,18 +73,173 @@ const changeIndex = ({nativeEvent}) =>{
 }
 
 
+function compareDates(date1,date2,time1,time2){
+
+    // if window1 > window2 ==> return false else true;
+    var month ={
+
+        '01': "00",
+        '02':"01",
+        '03':"02",
+        '04':"03",
+        '05':"04",
+        '06':"05",
+        '07':"06",
+        '08':"07",
+        '09':"08",
+        '10':"09",
+        '11':"10",
+        '12':"11"
+    
+    }
+    var [day1, month1, year1] = date1.split('-');
+    var [day2, month2, year2] = date2.split('-');
+
+    var [hour1, minutes1] = time1.split(':');
+    var [hour2, minutes2] = time2.split(':');
+
+    var date1Obj = new Date(`${year1}-${month[month1]}-${day1}T${hour1}:${minutes1}:00Z`)
+    var date2Obj = new Date(`${year2}-${month[month2]}-${day2}T${hour2}:${minutes2}:00Z`)
+    console.log('date1', `${year1}-${month[month1]}-${day1}T${hour1}:${minutes1}:00Z`)
+    console.log(date1Obj.getTime())
+   
+    console.log('date2',`${year2}-${month[month2]}-${day2}T${hour2}:${minutes2}:00Z` )
+    console.log(date2Obj.getTime())
+    console.log('date1 > date2',((date1Obj.getTime() > date2Obj.getTime()) ? true : false ))
+   return (date1Obj.getTime() > date2Obj.getTime()) ? true : false
+
+}
+
 
 function bookCar(){
     const user = auth().currentUser
     if(route.params.rentDate == undefined && ((startDate == 'Selecteaza o data' || endDate == 'Selecteaza o data') || (startHour == undefined || endHour == undefined))){
         setModalVisibleDate(true)
     }else{
-        
-        firestore().collection('users').doc(`${user.uid}`).collection('messages').add({
+        const date = new Date()
+        var requestDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`
+        var requestHour = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}`
+        var messageId = 360000*date.getFullYear() + 27616*date.getMonth() + 864*date.getDate() + 36*date.getHours() + 0.060*date.getMinutes() + 0.001*date.getSeconds()
+
+        var requestedCarDocRef = firestore().collection('listedCars').doc(`${route.params.carId}`)
+        var requestCarMessageDocRef = firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${messageId}`)
+        var confirmCarRequestMessageDocRef = firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`)
+        var userDocRef = firestore().collection('users').doc(`${user.uid}`)
+
+
+        firestore().runTransaction( transaction => {
+
+            transaction.get(requestedCarDocRef).then( requestedCar =>{
+                console.log(requestedCar.data().scheduledTrips[0].endDate)
+                if(!requestedCar.exists){
+                    throw 'Document does not exist!'
+                }
+
+                var currentCar = {
+                    startDate: startDate,
+                    endDate: endDate,
+                    startHour: startHour,
+                    endHour: endHour,
+                    rentUser: user.uid,
+                    carOwner: route.params.userCar.user,
+                    requestDate: requestDate,
+                    requestHour: requestHour,
+                    requestStatus: 'pending',
+                    additionalInfoFromOwner: ''
+                }
+
+                var i = requestedCar.data().scheduledTrips.length-1
+                
+                if(i == -1){
+                    transaction.update(requestedCarDocRef, {scheduledTrips: [currentCar]})
+                }
+                else{
+                  
+                    console.log(requestedCar.data().scheduledTrips[i])
+                    
+                    while( i >= 0 && compareDates(requestedCar.data().scheduledTrips[i].endDate, currentCar.startDate, requestedCar.data().scheduledTrips[i].endHour , currentCar.startHour)){
+                        console.log(requestedCar.data().scheduledTrips[i].endDate)
+                        requestedCar.data().scheduledTrips[i+1] = requestedCar.data().scheduledTrips[i]
+                        i--;
+                    }
+
+                    if(i==requestedCar.data().scheduledTrips.length-1){
+                    // currentCar.endDate < item.startDate
+                    //do this if only the endDate of the currentCar is less than the startDate of the item where i want to insert
+                        requestedCar.data().scheduledTrips[i+1] = currentCar;
+                        transaction.get(userDocRef).then((userData)=>{
+                            if(userData.data().carRequested){
+                                setAlreadyRequestedACar(true);
+                                setAlreadyRequestedACar(false);
+                                
+                            }else{                            
+                            transaction.update(requestedCarDocRef, {scheduledTrips: requestedCar.data().scheduledTrips})
+                            transaction.update(userDocRef, {carRequested:true})
+                            transaction.set(requestCarMessageDocRef, {
+                                type: 'carRequest',
+                                carId:`${route.params.carId}`,
+                                seen:false,
+                                requestDate: requestDate,
+                                requestHour: requestHour, 
+                                details: {
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                    startHour: startHour,
+                                    endHour: endHour,        
+                                }
+                            })
+                            transaction.set(confirmCarRequestMessageDocRef, {
+                                type: 'confirmCarRequest',
+                                from:`${user.uid}`,
+                                carId:`${route.params.carId}`,
+                                seen:false,
+                                requestDate: requestDate,
+                                requestHour: requestHour, 
+                                details: {
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                    startHour: startHour,
+                                    endHour: endHour,
+                                }
+
+             
+                            })
+
+                            }
+                        })
+                      
+
+                    }else if(compareDates(requestedCar.data().scheduledTrips[i+1].startDate,currentCar.endDate, requestedCar.data().scheduledTrips[i+1].startHour,currentCar.endHour)){
+                        requestedCar.data().scheduledTrips[i+1] = currentCar;
+                        transaction.update(requestedCarDocRef, {scheduledTrips: requestedCar.data().scheduledTrips})
+                    }else{
+                        setDateSelectedNotAvailable(true);
+                        setDateSelectedNotAvailable(false);
+                    }
+                }           
+            }) 
+
+            
+
+
+
+
+
+        })
+
+
+
+
+
+
+
+        firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${messageId}`).set({
             type: 'carRequest',
-            from:`${user.uid}`,
+            
             carId:`${route.params.carId}`,
             seen:false,
+            requestDate: requestDate,
+            requestHour: requestHour, 
             details: {
               startDate: startDate,
               endDate: endDate,
@@ -94,7 +250,31 @@ function bookCar(){
               
             }
         
+        
           })
+ 
+
+
+        firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`).set({
+            type: 'confirmCarRequest',
+            from:`${user.uid}`,
+            carId:`${route.params.carId}`,
+            seen:false,
+            requestDate: requestDate,
+            requestHour: requestHour, 
+            details: {
+              startDate: startDate,
+              endDate: endDate,
+              startHour: startHour,
+              endHour: endHour,
+
+             
+              
+            }
+
+        })
+
+          
         console.log('navigate to checkout')
     }
 
@@ -433,7 +613,7 @@ function openModalHour(){
                     <View style = {{justifyContent:"center", alignItems:'center'}}>
                         <TouchableOpacity style ={styles.bookCarButton} onPress={()=>{bookCar()}}>
                             <View>
-                                <Text style = {{fontSize:50/2.5}}>Inchiriaza</Text>
+                                <Text style = {{fontSize:50/2.5, color:"white"}}>Inchiriaza</Text>
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -558,7 +738,7 @@ const styles = StyleSheet.create({
         },
         bookCarButton:{
             width:width/1.5,
-            backgroundColor:"rgb(138,199,253)",
+            backgroundColor:"#1b2642",
             borderRadius:25,
             height:50,
             alignItems:"center",

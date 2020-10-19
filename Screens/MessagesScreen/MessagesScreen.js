@@ -2,6 +2,7 @@ import React, { Component, useEffect, useState, useContext } from 'react';
 import {
     View,
     Text,
+    Image,
     Dimensions,
     TouchableNativeFeedback
   } from 'react-native';
@@ -58,23 +59,42 @@ function returnTitleMessage(type, seen) {
 
 
 function readMessage(message){
-
-  firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${message.messageId}`).update({seen: true})
-  navigation.navigate('MessageBody')
+  if(message.messageBody.seen){
+    navigation.navigate('MessageBody', {message: message})
+  } else {
+    firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${message.messageId}`).update({seen: true})
+    navigation.navigate('MessageBody',{message: message})
+  }
 }
 
 
   return (
-      <View style={{}}>
+      <View style={{backgroundColor:'white', width:width,height:height}}>
         <ScrollView>
           <View style = {{width:width, height:20}}>
             
           </View>
+        
+
+        
+        
+        
         {
-          messagesObject.map((message, index)=>{
+          !messagesObject.length ? (
+
+            <View style ={{width:width, height:height*0.6, justifyContent:"center", alignItems:"center"}}>
+                <Image source = {require('../../images/noMessages.png')} style = {{aspectRatio:1, width: width*0.8, height:undefined}}/>
+                  <Text style = {{fontSize: 18, fontWeight:'bold'}}>Nu exista niciun mesaj in acest moment.</Text>
+                  <Text style = {{textAlign:"center",fontSize:16}}>Aici vei primi mesaje legate de calatoriile tale sau de masinile pe care le-ai inregistrat la inchiriere.</Text>
+            
+            </View>
+          ):
+
+
+          (messagesObject.map((message, index)=>{
             return(
               <TouchableNativeFeedback
-              onPress={()=>{if(message.messageBody.seen) {navigation.navigate('MessageBody')} else {readMessage(message)}}}
+              onPress={()=>{readMessage(message)}}
               background={TouchableNativeFeedback.Ripple('rgba(0,0,0,.2)')}>
                 <View style = {{}}>
                   <View style = {{width:width, justifyContent:"center", alignItems:"center"}}>
@@ -84,9 +104,6 @@ function readMessage(message){
                     {  
                       returnTitleMessage(message.messageBody.type,message.messageBody.seen)
                     }
-                  
-
-
                   </View>
                   <View style = {{width:width, justifyContent:"center", alignItems:"center"}}>
                     <View style = {{height:0.25, width: width*0.9, backgroundColor:"black"}}></View>
@@ -96,6 +113,7 @@ function readMessage(message){
 
             )
           })
+        )
         }
         </ScrollView>
       </View>

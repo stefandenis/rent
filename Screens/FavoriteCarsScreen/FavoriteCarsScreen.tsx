@@ -14,7 +14,7 @@ import app from '@react-native-firebase/app'
 
 
 const {width, height} = Dimensions.get('window');
-
+const heartsImageURL = require('../../images/hearts.png')
 function FavoriteCarsScreen(props){
 
     const [userFavoriteCars, setUserFavoriteCars] = useState([])
@@ -94,27 +94,39 @@ async function addToFavorites(index, favoriteFlag){
         props.route.params.reRenderSearchList(triggerReRenderNumber+1)
         
     
-    
+
 
 
 }
 
 
+
+
     return(
 
         
-        <View style = {{}}>
+        <View style = {{width:width, height:height, backgroundColor:"#1b2642"}}>
            
             
+            <Text style = {{color:"white",fontSize:35, marginTop:height*0.1,marginLeft:20}}>Favorite</Text> 
+            <View style = {{height:1, backgroundColor:"white",marginTop:10,marginHorizontal:"3.5%",}}></View>
+            <ScrollView
             
-            <ScrollView>
-                {
+            >
+                {                     
+                   userFavoriteCars.length ? (
                     userFavoriteCars.map((userCar,index)=>{
                         return(
                             <CarInfoCard userCar = {userCar} index = {index} carId={userCar.carId} receiveFavorites={(index, favoriteFlag)=>{addToFavorites(index,favoriteFlag);}}/>    
                             )
-                        })      
-                    
+                        })
+                   ):(
+                    <View style = {{height:height*0.65,justifyContent:"center", alignItems:"center"}}>
+                        <Image style = {{width:width*0.70,marginBottom:10, height:undefined, aspectRatio:594/386}} source = {heartsImageURL} />
+                        <Text style = {{fontWeight:"bold",fontSize:20, color:"white"}}>Incepe sa salvezi anunturi la favorite</Text>
+                        <Text style = {{textAlign:"center",fontSize:19,color:'white'}}>Selecteaza ♡ din dreptul anunturilor preferate, pentru a le avea la indemana</Text>
+                    </View>
+                   )
                 }
                 
             </ScrollView>

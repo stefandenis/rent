@@ -69,6 +69,7 @@ function  animate(easing) {
   return (
     <Modal
       transparent={true}
+      statusBarTranslucent={true}
       animationType={'none'}
       visible={loading}
       presentationStyle='overFullScreen'
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent:"center",
-    backgroundColor: '#00000040',
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
 
   

@@ -12,7 +12,7 @@ import React, { useState, Component, useEffect, useContext } from 'react';
 import { NavigationContainer, StackActions } from '@react-navigation/native';
 import SplashScreen from 'react-native-splash-screen'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator} from '@react-navigation/stack'
+import { createStackNavigator,  CardStyleInterpolators,} from '@react-navigation/stack'
 import SearchScreen from './Screens/SearchScreen/SearchScreen';
 import ProfileScreen from './Screens/ProfileScreen/ProfileScreen';
 import MessagesScreen from './Screens/MessagesScreen/MessagesScreen';
@@ -151,9 +151,12 @@ useEffect(()=>{
 
       if(user.emailVerified || emailVerified || user.providerData[0].providerId == 'facebook.com'){
         return(
-          <Stack.Navigator>
-          <Stack.Screen options={{headerShown: false}} name="Messages" component={MessagesScreen}/> 
-          <Stack.Screen options = {{headerShown:false}} name = 'MessageBody' component = {MessageBody}/> 
+          <Stack.Navigator
+          
+          screenOptions={{  cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}}
+          >
+            <Stack.Screen options={{headerShown: false, gestureDirection: 'horizontal',}} name="Messages" component={MessagesScreen}/> 
+            <Stack.Screen options = {{headerShown:false, gestureDirection: 'horizontal' }} name = 'MessageBody' component = {MessageBody}/> 
           </Stack.Navigator>
         )
   
@@ -342,6 +345,7 @@ return(
       
      
     },
+  
   })}
   tabBarOptions={{
     activeTintColor: '#567FE5',
@@ -388,13 +392,13 @@ function App(){
     var mesObj = {}
     var mesArray=[]
     SplashScreen.hide();
-    const subscribe = onAuthStateChange(setUser)
-    firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
+    const unsubscribe = onAuthStateChange(setUser)
+    const unsubscribe_messages = firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
       messageCount = 0;
       mesArray = []
       mesObj = {}
       querySnapshot.forEach(doc => {
-        mesArray.push({messageId:doc.id, messageBody: doc.data()})
+        mesArray.unshift({messageId:doc.id, messageBody: doc.data()})
         if(doc.data().seen == false){
           messageCount += 1;
         }
@@ -406,7 +410,8 @@ function App(){
    
     
     return ()=>{ 
-      subscribe();
+      unsubscribe();
+      unsubscribe_messages();
     }
   },[])
 
@@ -428,7 +433,9 @@ function App(){
     <UserProvider value={{user, refreshUser, unseenMessagesCount, messagesObject}}>
       <Loader loading={loading}/>
       <NavigationContainer>
-          <RootStack.Navigator  >
+          <RootStack.Navigator 
+           screenOptions={{cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}} 
+          >
           
               <RootStack.Screen options={{headerShown: false}} name="TabNav"  component={TabNavStackScreen} />
               <RootStack.Screen options={{headerShown: false}} name="LogIn" component={LogInScreen}/> 
