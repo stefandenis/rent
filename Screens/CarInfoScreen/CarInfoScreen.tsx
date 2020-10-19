@@ -48,6 +48,7 @@ function CarInfoScreen( {navigation, route}){
     const [endHour, setEndHour] = useState();
     const [modalVisibleHour, setModalVisibleHour] = useState(false);
     const [dateSelectedNotAvailable,setDateSelectedNotAvailable] = useState(false)
+    const [alreadyRequestedACar,setAlreadyRequestedACar] = useState(false)
 
 useEffect(()=>{
     const user = auth().currentUser
@@ -129,8 +130,8 @@ function bookCar(){
 
         firestore().runTransaction( transaction => {
 
-            transaction.get(requestedCarDocRef).then( requestedCar =>{
-                console.log(requestedCar.data().scheduledTrips[0].endDate)
+            return transaction.get(requestedCarDocRef).then( requestedCar =>{
+                
                 if(!requestedCar.exists){
                     throw 'Document does not exist!'
                 }
@@ -167,13 +168,15 @@ function bookCar(){
                     // currentCar.endDate < item.startDate
                     //do this if only the endDate of the currentCar is less than the startDate of the item where i want to insert
                         requestedCar.data().scheduledTrips[i+1] = currentCar;
-                        transaction.get(userDocRef).then((userData)=>{
+                        return transaction.get(userDocRef).then((userData)=>{
                             if(userData.data().carRequested){
                                 setAlreadyRequestedACar(true);
                                 setAlreadyRequestedACar(false);
                                 
                             }else{                            
                             transaction.update(requestedCarDocRef, {scheduledTrips: requestedCar.data().scheduledTrips})
+                            
+                            
                             transaction.update(userDocRef, {carRequested:true})
                             transaction.set(requestCarMessageDocRef, {
                                 type: 'carRequest',
@@ -186,13 +189,18 @@ function bookCar(){
                                     endDate: endDate,
                                     startHour: startHour,
                                     endHour: endHour,        
-                                }
+                                },
+                                carOwner: route.params.userCar.user,
+                                messageTitle: 'Cererea ta a fost trimisa!',
+                                messageSubTitle: 'Poti verifica detaliile sau poti anula cererea.'
                             })
                             transaction.set(confirmCarRequestMessageDocRef, {
                                 type: 'confirmCarRequest',
-                                from:`${user.uid}`,
+                                
                                 carId:`${route.params.carId}`,
                                 seen:false,
+                                sender: user.uid,
+                                
                                 requestDate: requestDate,
                                 requestHour: requestHour, 
                                 details: {
@@ -233,46 +241,46 @@ function bookCar(){
 
 
 
-        firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${messageId}`).set({
-            type: 'carRequest',
+        // firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${messageId}`).set({
+        //     type: 'carRequest',
             
-            carId:`${route.params.carId}`,
-            seen:false,
-            requestDate: requestDate,
-            requestHour: requestHour, 
-            details: {
-              startDate: startDate,
-              endDate: endDate,
-              startHour: startHour,
-              endHour: endHour,
+        //     carId:`${route.params.carId}`,
+        //     seen:false,
+        //     requestDate: requestDate,
+        //     requestHour: requestHour, 
+        //     details: {
+        //       startDate: startDate,
+        //       endDate: endDate,
+        //       startHour: startHour,
+        //       endHour: endHour,
 
              
               
-            }
+        //     }
         
         
-          })
+        //   })
  
 
 
-        firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`).set({
-            type: 'confirmCarRequest',
-            from:`${user.uid}`,
-            carId:`${route.params.carId}`,
-            seen:false,
-            requestDate: requestDate,
-            requestHour: requestHour, 
-            details: {
-              startDate: startDate,
-              endDate: endDate,
-              startHour: startHour,
-              endHour: endHour,
+        // firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`).set({
+        //     type: 'confirmCarRequest',
+        //     from:`${user.uid}`,
+        //     carId:`${route.params.carId}`,
+        //     seen:false,
+        //     requestDate: requestDate,
+        //     requestHour: requestHour, 
+        //     details: {
+        //       startDate: startDate,
+        //       endDate: endDate,
+        //       startHour: startHour,
+        //       endHour: endHour,
 
              
               
-            }
+        //     }
 
-        })
+        // })
 
           
         console.log('navigate to checkout')

@@ -23,12 +23,11 @@ import MessageBody from '../../Screens/MessagesScreen/MessageBody'
 function MessagesScreen({navigation,route}) {
 
   const [messages, setMessages] = useState([]);
+
   const {user, refreshUser, unseenMessagesCount, messagesObject} = useContext(userContext);
 
 useEffect(()=>{
 
-  console.log('din mesaj', unseenMessagesCount)
-  console.log(messagesObject)
 },[])
 
 
@@ -38,23 +37,41 @@ function returnTitleMessage(type, seen) {
   var mailIcon = seen ? 'mail-open' : "mail"
   var mailColor = seen ? "gray" : "orange"
 
-  if(type == "carRequest"){
+  var title, subTitle;
+
+  switch(type){
+
+    case 'carRequest': 
+      title = 'Cererea ta a fost trimisa!';
+      subTitle = 'Poti verifica detaliile sau poti anula cererea.'
+      break;
+    case 'confirmCarRequest': 
+      title = 'Ai primit o cerere!';
+      subTitle = 'Poti sa accepti sau sa refuzi aceasta cerere.'
+   
+    case 'carResponseDecline':
+      title = 'Proprietarul nu a acceptat cererea ta'
+      subTitle = 'Poti sa alegi alta masina.'
+    
+    case 'carResponseAccept':
+      title = 'Proprietarul a acceptat cererea ta'
+      subTitle = 'Intra aici pentru a afla mai multe despre masina.'
+   
+    
+  }
+  
     return(
       <View style = {{marginLeft:15, flexDirection:'row'}}>
         <View>
-        <Text style = {{fontSize:20, fontWeight:'bold'}}>Cererea ta a fost trimisa!</Text>
-        <Text style = {{fontSize:16}}>Poti verifica detaliile sau poti anula cererea</Text>
+        <Text style = {{width:width*0.85,fontSize:width*0.055, fontWeight:'bold'}}>{title}</Text>
+        <Text style = {{width:width*0.85,fontSize:width*0.040}}>{subTitle}</Text>
         </View>
-        <View style = {{marginLeft:20}}>
-          <Icon name = {mailIcon} color = {mailColor} size = {40}/>
+        <View style = {{marginLeft:0, justifyContent:"center"}}>
+          <Icon name = {mailIcon} color = {mailColor} size = {width*0.1}/>
         </View>
       </View>
     )
-  }else if(type == 'carRentConfirmation'){
-
-  }else if(type == 'carToBeAcceptedOrDeclined'){
-
-  }
+  
 }
 
 

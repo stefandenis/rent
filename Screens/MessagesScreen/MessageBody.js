@@ -25,24 +25,38 @@ import {backgroundColor, textColor} from '../../colors'
 function MessageBody({navigation, route}) {
 
     const [userCar, setUserCar] = useState({photos: []})
+    
 
 useEffect(()=>{
   console.log('carid',route.params.message.messageBody )
   firestore().collection('listedCars').doc(`${route.params.message.messageBody.carId}`).get().then((querySnapshot)=>{
     setUserCar(querySnapshot.data());
   })
+
+  firestore().collection('users').doc(`${route.params.message.messageBody.user}`)
+
+
 },[])
 
-    return(
+function returnMessageBody(type){
+  var title;
+  
+switch(type){
+  case 'carRequest':
+    title = 'Ai solicitat masina'
+    break;
+  case 'confirmCarRequest':
+    title = "Masina ta este dorita de"
+}
 
-      <View style = {{justifyContent:"center", alignItems:"center",marginTop:"6%"}}>
-          <ScrollView style = {styles.messageContainer}>
+  return (
+            <ScrollView style = {styles.messageContainer}>
               
               <View style = {{flexDirection:"row", alignItems:"center"}}>
                 <TouchableOpacity onPress = {()=>{navigation.goBack()}}>
                   <Icon name = {'arrow-back'} color = {textColor} size = {30}/>
                 </TouchableOpacity>
-                <Text style = {{marginLeft:"2%",fontSize: 20, color:textColor}}>Ai solicitat masina</Text>
+              <Text style = {{marginLeft:"2%",fontSize: 20, color:textColor}}>{title}</Text>
               </View>
 
               <TouchableOpacity style = {{backgroundColor:"black", margin:5, borderRadius:10, overflow:'hidden'}} onPress = {()=>{navigation.navigate('CarInfoScreen', {userCar})}}>
@@ -65,6 +79,17 @@ useEffect(()=>{
               </View>
 
           </ScrollView>
+          )
+}
+
+
+
+    return(
+
+      <View style = {{justifyContent:"center", alignItems:"center",marginTop:"6%"}}>
+          {
+            returnMessageBody(route.params.message.messageBody.type)
+          }
       </View>
     )
 

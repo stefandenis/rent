@@ -212,7 +212,7 @@ const ListStack = ()=>{
             
             <Stack.Navigator>
                 <Stack.Screen options={{headerShown: false}} name="List" component={ListScreen}/> 
-                
+            
 
             </Stack.Navigator>
         )
@@ -387,25 +387,31 @@ function App(){
   const [unseenMessagesCount , setUnseenMessagesCount] = useState(0)
   const [messagesObject, setMessagesObject] = useState([])
   useEffect(()=>{
+    
     const user = auth().currentUser
     var messageCount = 0;
     var mesObj = {}
     var mesArray=[]
     SplashScreen.hide();
     const unsubscribe = onAuthStateChange(setUser)
-    const unsubscribe_messages = firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
-      messageCount = 0;
-      mesArray = []
-      mesObj = {}
-      querySnapshot.forEach(doc => {
-        mesArray.unshift({messageId:doc.id, messageBody: doc.data()})
-        if(doc.data().seen == false){
-          messageCount += 1;
-        }
-    });
+   
+      console.log('am intrat in mesaj')
+      const unsubscribe_messages = firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
+        messageCount = 0;
+        mesArray = []
+        mesObj = {}
+        querySnapshot.forEach(doc => {
+          mesArray.unshift({messageId:doc.id, messageBody: doc.data()})
+          if(doc.data().seen == false){
+            messageCount += 1;
+          }
+      });
+    
     setUnseenMessagesCount(messageCount)
     setMessagesObject(mesArray)
     })
+  
+
     setLoading(false)
    
     
