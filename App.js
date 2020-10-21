@@ -394,9 +394,10 @@ function App(){
     var mesArray=[]
     SplashScreen.hide();
     const unsubscribe = onAuthStateChange(setUser)
-   
+    var unsubscribe_messages;
+    console.log(user.displayName)
       console.log('am intrat in mesaj')
-      const unsubscribe_messages = firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
+      unsubscribe_messages = firestore().collection('users').doc(`${user.uid}`).collection('messages').onSnapshot(querySnapshot => {
         messageCount = 0;
         mesArray = []
         mesObj = {}

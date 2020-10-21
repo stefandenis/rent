@@ -32,7 +32,7 @@ useEffect(()=>{
 
 
 
-function returnTitleMessage(type, seen) {
+function returnTitleMessage(type, seen, message) {
 
   var mailIcon = seen ? 'mail-open' : "mail"
   var mailColor = seen ? "gray" : "orange"
@@ -46,17 +46,18 @@ function returnTitleMessage(type, seen) {
       subTitle = 'Poti verifica detaliile sau poti anula cererea.'
       break;
     case 'confirmCarRequest': 
-      title = 'Ai primit o cerere!';
+      title = `Cerere de la ${message.senderData.displayName.split(' ')[0]}`;
       subTitle = 'Poti sa accepti sau sa refuzi aceasta cerere.'
+      break;
    
     case 'carResponseDecline':
       title = 'Proprietarul nu a acceptat cererea ta'
       subTitle = 'Poti sa alegi alta masina.'
-    
+      break;
     case 'carResponseAccept':
       title = 'Proprietarul a acceptat cererea ta'
       subTitle = 'Intra aici pentru a afla mai multe despre masina.'
-   
+      break;
     
   }
   
@@ -119,7 +120,7 @@ function readMessage(message){
                   </View>
                     <View style = {{marginVertical:15}}>
                     {  
-                      returnTitleMessage(message.messageBody.type,message.messageBody.seen)
+                      returnTitleMessage(message.messageBody.type,message.messageBody.seen, message.messageBody)
                     }
                   </View>
                   <View style = {{width:width, justifyContent:"center", alignItems:"center"}}>

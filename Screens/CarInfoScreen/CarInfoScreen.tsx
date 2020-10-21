@@ -1,36 +1,20 @@
 import React, {useEffect, useState,useRef} from 'react'
 import {Text, View,Image, StyleSheet, FlatList,ScrollView,Modal, CheckBox, TextInput, Animated, TouchableNativeFeedback, Dimensions, TouchableOpacity, InteractionManager, Picker, Alert, TouchableWithoutFeedback } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useLinkProps, NavigationContainer } from '@react-navigation/native';
+
 const {width, height} = Dimensions.get('window');
-import ImagePicker from 'react-native-image-picker';
-import CarPreviewBox from '../../CustomComponents/CarPreviewBox'
-import { createIconSetFromFontello } from 'react-native-vector-icons';
-import GestureRecognizer from 'react-native-swipe-gestures'
-import  swipeDirections from 'react-native-swipe-gestures'
-import { initialWindowMetrics } from 'react-native-safe-area-context';
-import ChangePassword from '../../CustomComponents/ChangePassword';
-import CarSlideShow from '../../CustomComponents/CarSlideShow';
-import {cars, models} from '../../config/cars'
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
 import MapView, { PROVIDER_GOOGLE, Marker, LatLng } from 'react-native-maps';
-import Geocoder from 'react-native-geocoder';
+
 import auth from '@react-native-firebase/auth'
-import storage from '@react-native-firebase/storage'
-import database from '@react-native-firebase/database'
-import Loader from '../../CustomComponents/Loader'
 import firestore from '@react-native-firebase/firestore'
 import CalendarPicker from 'react-native-calendar-picker';
 import TextInputCustom from '../../CustomComponents/textinput'
 import {SharedElement} from 'react-navigation-shared-element'
+import { USER_DEFAULT_VALUE } from '../../context/user.context';
+
 navigator.geolocation = require('@react-native-community/geolocation');
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
-
-
-
-
-
-
 
 function CarInfoScreen( {navigation, route}){
 
@@ -65,6 +49,8 @@ useEffect(()=>{
 },[])
 
 
+
+
 const changeIndex = ({nativeEvent}) =>{
 
     const slide = Math.ceil(nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width)
@@ -79,18 +65,18 @@ function compareDates(date1,date2,time1,time2){
     // if window1 > window2 ==> return false else true;
     var month ={
 
-        '01': "00",
-        '02':"01",
-        '03':"02",
-        '04':"03",
-        '05':"04",
-        '06':"05",
-        '07':"06",
-        '08':"07",
-        '09':"08",
-        '10':"09",
-        '11':"10",
-        '12':"11"
+        '00':"01",
+        '01':"02",
+        '02':"03",
+        '03':"04",
+        '04':"05",
+        '05':"06",
+        '06':"07",
+        '07':"08",
+        '08':"09",
+        '09':"10",
+        '10':"11",
+        '11':"12"
     
     }
     var [day1, month1, year1] = date1.split('-');
@@ -99,21 +85,24 @@ function compareDates(date1,date2,time1,time2){
     var [hour1, minutes1] = time1.split(':');
     var [hour2, minutes2] = time2.split(':');
 
-    var date1Obj = new Date(`${year1}-${month[month1]}-${day1}T${hour1}:${minutes1}:00Z`)
-    var date2Obj = new Date(`${year2}-${month[month2]}-${day2}T${hour2}:${minutes2}:00Z`)
-    console.log('date1', `${year1}-${month[month1]}-${day1}T${hour1}:${minutes1}:00Z`)
+    var date1Obj = new Date(`${year1}-${month1}-${day1}T${hour1}:${minutes1}:00Z`)
+    var date2Obj = new Date(`${year2}-${month2}-${day2}T${hour2}:${minutes2}:00Z`)
+    console.log('date1', `${year1}-${month1}-${day1}T${hour1}:${minutes1}:00Z`)
     console.log(date1Obj.getTime())
    
-    console.log('date2',`${year2}-${month[month2]}-${day2}T${hour2}:${minutes2}:00Z` )
+    console.log('date2',`${year2}-${month2}-${day2}T${hour2}:${minutes2}:00Z` )
     console.log(date2Obj.getTime())
     console.log('date1 > date2',((date1Obj.getTime() > date2Obj.getTime()) ? true : false ))
-   return (date1Obj.getTime() > date2Obj.getTime()) ? true : false
+   return (date1Obj.getTime() > date2Obj.getTime()) ? true : false 
 
 }
 
 
 function bookCar(){
     const user = auth().currentUser
+
+    console.log('am ajuns in bookcar')
+    console.log('user uid', user)
     if(route.params.rentDate == undefined && ((startDate == 'Selecteaza o data' || endDate == 'Selecteaza o data') || (startHour == undefined || endHour == undefined))){
         setModalVisibleDate(true)
     }else{
@@ -127,11 +116,61 @@ function bookCar(){
         var confirmCarRequestMessageDocRef = firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`)
         var userDocRef = firestore().collection('users').doc(`${user.uid}`)
 
+        
+           
+
+        
+
 
         firestore().runTransaction( transaction => {
 
             return transaction.get(requestedCarDocRef).then( requestedCar =>{
                 
+                var scheduledTrips = requestedCar.data().scheduledTrips
+
+                function addTrip(transaction){
+
+                    transaction.update(requestedCarDocRef, {scheduledTrips: scheduledTrips})
+                    transaction.update(userDocRef, {carRequested:true})
+                    transaction.set(requestCarMessageDocRef, {
+                        type: 'carRequest',
+                        carId:`${route.params.carId}`,
+                        seen:false,
+                        requestDate: requestDate,
+                        requestHour: requestHour, 
+                        details: {
+                            startDate: startDate,
+                            endDate: endDate,
+                            startHour: startHour,
+                            endHour: endHour,        
+                        },
+                        carOwner: route.params.userCar.user,
+                        
+                      
+                    })
+                    transaction.set(confirmCarRequestMessageDocRef, {
+                        type: 'confirmCarRequest',
+                        
+                        carId:`${route.params.carId}`,
+                        seen:false,
+                        sender: user.uid,
+                        senderData: {
+                            uid: user.uid,
+                            displayName: user.displayName,
+                            photoURL: user.photoURL
+                        },
+                        
+                        requestDate: requestDate,
+                        requestHour: requestHour, 
+                        details: {
+                            startDate: startDate,
+                            endDate: endDate,
+                            startHour: startHour,
+                            endHour: endHour,
+                        }
+                    })
+                }
+
                 if(!requestedCar.exists){
                     throw 'Document does not exist!'
                 }
@@ -149,144 +188,71 @@ function bookCar(){
                     additionalInfoFromOwner: ''
                 }
 
-                var i = requestedCar.data().scheduledTrips.length-1
-                
-                if(i == -1){
-                    transaction.update(requestedCarDocRef, {scheduledTrips: [currentCar]})
-                }
-                else{
-                  
-                    console.log(requestedCar.data().scheduledTrips[i])
-                    
-                    while( i >= 0 && compareDates(requestedCar.data().scheduledTrips[i].endDate, currentCar.startDate, requestedCar.data().scheduledTrips[i].endHour , currentCar.startHour)){
-                        console.log(requestedCar.data().scheduledTrips[i].endDate)
-                        requestedCar.data().scheduledTrips[i+1] = requestedCar.data().scheduledTrips[i]
-                        i--;
-                    }
+                var i = scheduledTrips.length-1
 
-                    if(i==requestedCar.data().scheduledTrips.length-1){
-                    // currentCar.endDate < item.startDate
-                    //do this if only the endDate of the currentCar is less than the startDate of the item where i want to insert
-                        requestedCar.data().scheduledTrips[i+1] = currentCar;
-                        return transaction.get(userDocRef).then((userData)=>{
-                            if(userData.data().carRequested){
-                                setAlreadyRequestedACar(true);
-                                setAlreadyRequestedACar(false);
-                                
-                            }else{                            
-                            transaction.update(requestedCarDocRef, {scheduledTrips: requestedCar.data().scheduledTrips})
-                            
-                            
-                            transaction.update(userDocRef, {carRequested:true})
-                            transaction.set(requestCarMessageDocRef, {
-                                type: 'carRequest',
-                                carId:`${route.params.carId}`,
-                                seen:false,
-                                requestDate: requestDate,
-                                requestHour: requestHour, 
-                                details: {
-                                    startDate: startDate,
-                                    endDate: endDate,
-                                    startHour: startHour,
-                                    endHour: endHour,        
-                                },
-                                carOwner: route.params.userCar.user,
-                                messageTitle: 'Cererea ta a fost trimisa!',
-                                messageSubTitle: 'Poti verifica detaliile sau poti anula cererea.'
-                            })
-                            transaction.set(confirmCarRequestMessageDocRef, {
-                                type: 'confirmCarRequest',
-                                
-                                carId:`${route.params.carId}`,
-                                seen:false,
-                                sender: user.uid,
-                                
-                                requestDate: requestDate,
-                                requestHour: requestHour, 
-                                details: {
-                                    startDate: startDate,
-                                    endDate: endDate,
-                                    startHour: startHour,
-                                    endHour: endHour,
-                                }
 
-             
-                            })
-
-                            }
-                        })
-                      
-
-                    }else if(compareDates(requestedCar.data().scheduledTrips[i+1].startDate,currentCar.endDate, requestedCar.data().scheduledTrips[i+1].startHour,currentCar.endHour)){
-                        requestedCar.data().scheduledTrips[i+1] = currentCar;
-                        transaction.update(requestedCarDocRef, {scheduledTrips: requestedCar.data().scheduledTrips})
+                return transaction.get(userDocRef).then((userData)=>{
+                    if(false){
+                        Alert.alert(
+                            "Ai solicitat deja o masina",
+                            "Ai solicitat deja o masina. Pentru a solicita o alta masina, anuleaza cererea pe care ai facut-o deja. Aceste cereri pot fi vizualizate in sectiunea Mesaje.",
+                           
+                          );
                     }else{
-                        setDateSelectedNotAvailable(true);
-                        setDateSelectedNotAvailable(false);
+                        if(i == -1 ){
+                            scheduledTrips = [currentCar]
+                            addTrip(transaction)
+                        }else{
+                            
+                            //insertion sort for dates 
+                            while( i >= 0 && compareDates(scheduledTrips[i].endDate, currentCar.startDate, scheduledTrips[i].endHour , currentCar.startHour)){
+                                console.log(scheduledTrips[i].endDate)
+                                scheduledTrips[i+1] = scheduledTrips[i]
+                                i--;
+                            }
+                            // currentCar.endDate < item.startDate
+                            //do this if only the endDate of the currentCar is less than the startDate of the item where i want to insert
+                            
+                            console.log('index',i)
+                            console.log(scheduledTrips.length-1)
+                            if(i==scheduledTrips.length-1){
+                                scheduledTrips[i+1] = currentCar;
+                                addTrip(transaction)
+                            }else if(compareDates(scheduledTrips[i+1].startDate,currentCar.endDate, scheduledTrips[i+1].startHour,currentCar.endHour)){
+                                scheduledTrips[i+1] = currentCar;
+                                addTrip(transaction)
+                            }else{
+                                
+                                Alert.alert(
+                                    "Data indisponibila",
+                                    "O alta persoana a selectat aceasta perioada inaintea ta. Pentru a putea vedea masinile disponibile intr-o perioada. Selecteaza o data si ora din calendar.",
+                                   
+                                  );
+                            }
+                            
+
+                        }
                     }
-                }           
-            }) 
+                })
+                
+                
+                  
+                   
+                    
+                   
 
+                   
+                   
             
-
-
-
-
-
+      
         })
 
 
+       
+    })
 
 
-
-
-
-        // firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${messageId}`).set({
-        //     type: 'carRequest',
-            
-        //     carId:`${route.params.carId}`,
-        //     seen:false,
-        //     requestDate: requestDate,
-        //     requestHour: requestHour, 
-        //     details: {
-        //       startDate: startDate,
-        //       endDate: endDate,
-        //       startHour: startHour,
-        //       endHour: endHour,
-
-             
-              
-        //     }
-        
-        
-        //   })
- 
-
-
-        // firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`).set({
-        //     type: 'confirmCarRequest',
-        //     from:`${user.uid}`,
-        //     carId:`${route.params.carId}`,
-        //     seen:false,
-        //     requestDate: requestDate,
-        //     requestHour: requestHour, 
-        //     details: {
-        //       startDate: startDate,
-        //       endDate: endDate,
-        //       startHour: startHour,
-        //       endHour: endHour,
-
-             
-              
-        //     }
-
-        // })
-
-          
-        console.log('navigate to checkout')
-    }
-
-
+}
 }
 
 
@@ -294,7 +260,7 @@ function onDateChange(date,type){
     console.log(date)
     if(date){
         var day = (date['_i'].day <= 9) ? `0${date['_i'].day}` : date['_i'].day
-        var month = (date['_i'].month <= 9) ? `0${date['_i'].month}` : date['_i'].month ;
+        var month = (date['_i'].month <= 8) ? `0${date['_i'].month+1}` : date['_i'].month+1 ;
         var year = date['_i'].year;
         var finalDate = `${day}-${month}-${year}`;
     }
