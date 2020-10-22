@@ -12,6 +12,7 @@ import { SharedElement } from 'react-navigation-shared-element';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import functions from '@react-native-firebase/functions';
 import database from '@react-native-firebase/database'
+import auth from '@react-native-firebase/auth'
 const API_KEY = 'AIzaSyBejq7d1vneBB4Qh_Hcb6INto_3Y9FJWrQ'
 import {
     View,
@@ -33,12 +34,22 @@ const idSearch = 1;
 function SearchScreen({navigation}) {
 
   const [search, setSearch] = useState('');
+  const [variable, setVariable] = useState(null)
 
 function pressHandler(){
   navigation.navigate("List")
 }
 
 
+
+function test(){
+  const user = auth().currentUser
+  firestore().collection('users').doc(`${user.uid}`).get().then(res=>{
+
+    console.log(res.data().sdlfnsd);
+    console.log(variable)
+  })
+}
 
 
 
@@ -89,9 +100,9 @@ function pressHandler(){
             >
               <View style={styles.listImageContainer}>
                 <ImageBackground source={require('../../images/handshake.jpg')} style={styles.rentImage} imageStyle={rentImgStyle}>
-                  <Text style={styles.rentTextAdd}>List your car</Text>
+                  <Text style={styles.rentTextAdd}>Inregistreaza masina</Text>
                 </ImageBackground>
-                <Text style = {styles.sitBackStyle}>Sit back and earn money</Text>
+                <Text style = {styles.sitBackStyle}>Relaxeaza-te si incaseaza banii</Text>
             
               </View>
             </TouchableOpacity>
@@ -100,8 +111,11 @@ function pressHandler(){
         
         
         </View>
-              
 
+        <TouchableOpacity onPress = {()=>{test()}}>
+          <Text>Test</Text>
+        </TouchableOpacity>
+              
 
 </ScrollView>
 
@@ -159,7 +173,7 @@ function pressHandler(){
     
     sitBackStyle:{
       color:"rgba(0,0,0,1)",
-      fontSize:width/15,
+      fontSize:width/18,
       fontWeight:"bold",
       textAlign:"center"
     },

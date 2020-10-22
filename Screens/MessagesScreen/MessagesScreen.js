@@ -55,8 +55,8 @@ function returnTitleMessage(type, seen, message) {
       subTitle = 'Poti sa alegi alta masina.'
       break;
     case 'carResponseAccept':
-      title = 'Proprietarul a acceptat cererea ta'
-      subTitle = 'Intra aici pentru a afla mai multe despre masina.'
+      title = `${message.senderData.displayName.split(' ')[0]} a acceptat cererea ta`
+      subTitle = 'Intra aici pentru detalii.'
       break;
     
   }
@@ -127,7 +127,7 @@ function readMessage(message){
                     <View style = {{height:0.25, width: width*0.9, backgroundColor:"black"}}></View>
                   </View>
                 </View>
-                </TouchableNativeFeedback>
+              </TouchableNativeFeedback>
 
             )
           })

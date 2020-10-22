@@ -20,12 +20,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import { FirebaseStorageTypes } from '@react-native-firebase/storage';
 import {backgroundColor, textColor} from '../../colors'
 import MessagesScreen from './MessagesScreen';
-
+import auth from '@react-native-firebase/auth'
 
 function MessageBody({navigation, route}) {
 
     const [userCar, setUserCar] = useState({photos: []})
-    const [confirmed, setConfirmed] = useState()    
+    const [confirmed, setConfirmed] = useState(null) 
+    const [message, setMessage] = useState(null)
+   
 
 useEffect(()=>{
   console.log('carid',route.params.message.messageBody )
@@ -34,14 +36,17 @@ useEffect(()=>{
   })
 
   firestore().collection('listedCars').doc(`${route.params.message.messageBody}`)
-
+  setMessage(route.params.message.messageBody)
+  
+  if(route.params.message.messageBody.confirmedResponse == undefined) setConfirmed('notConfirmed')
+  if(route.params.message.messageBody.confirmedResponse == 'accepted') setConfirmed('accepted')
 },[])
+
 
 
 function createMessageId(){
   const date = new Date()
-  var requestDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`
-  var requestHour = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}`
+  
   var messageId = 360000*date.getFullYear() + 27616*date.getMonth() + 864*date.getDate() + 36*date.getHours() + 0.060*date.getMinutes() + 0.001*date.getSeconds()
 
   return messageId;
@@ -77,10 +82,16 @@ function acceptRequest(message){
   */
 
 
+  const user = auth().currentUser
 
+ 
   const messageId = createMessageId()
   const acceptedMessageRef = firestore().collection('users').doc(`${message.senderData.uid}`).collection('messages').doc(`${messageId}`)
   const listedCarDocRef = firestore().collection('listedCars').doc(`${message.carId}`)
+  if(user){
+    var ownerMessageRef = firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${route.params.message.messageId}`)
+  }  
+  
   firestore().runTransaction(transaction =>{
     
     return transaction.get(listedCarDocRef).then(carData=>{
@@ -90,7 +101,6 @@ function acceptRequest(message){
         carData.data().scheduledTrips.forEach((value,index)=>{
           if(value.rentUser == message.senderData.uid){
             
-      
             var newScheduledTrip = value
             newScheduledTrip.requestStatus = {
               status:'accepted',
@@ -103,8 +113,37 @@ function acceptRequest(message){
             newScheduledTrips[index] = newScheduledTrip
             transaction.update(listedCarDocRef, {scheduledTrips: newScheduledTrips})
             transaction.set(acceptedMessageRef, {
+
+                       type: 'carResponseAccept',
+                       carId:`${route.params.message.messageBody.carId}`,
+                       senderData:{
+                          uid: userCar.user,
+                          displayName: user.displayName,
+                          photoURL: user.photoURL
+                       },
+
+                        
+                        seen:false,
+                        responseTimestamp:{
+                            requestDate: responseDate, 
+                            requestHour: responseHour
+                        }, 
+                        rentPeriod: {
+                            startDate: message.rentPeriod.startDate,
+                            endDate: message.rentPeriod.endDate,
+                            startHour: message.rentPeriod.startHour,
+                            endHour: message.rentPeriod.endHour,        
+                        },
+                         
+                        
               
             })
+           
+
+              transaction.update(ownerMessageRef, {confirmedResponse: 'accepted'})
+              setConfirmed('accepted')
+              
+            
           })
         })
 
@@ -126,6 +165,60 @@ function acceptRequest(message){
 function declineRequest(){
 
 }
+
+function returnConfirmButtons(message){
+
+  if(confirmed == null){
+   
+    return(
+      <View style = {{flexDirection:'row', justifyContent:"center", marginTop:"5%"}}>
+      <View style = {{justifyContent:"center", alignItems:"center", marginBottom:"3%", marginTop:"1%", marginRight:"5%"}}>
+        <TouchableOpacity style = {{paddingHorizontal:10, borderRadius:15}} onPress = {()=>{acceptRequest(message)}}>
+            <Text style = {{fontSize:20, color:'white'}}> </Text>
+        </TouchableOpacity>
+      </View>
+  
+      
+  </View>
+    )
+  }
+
+
+  else if(confirmed == "accepted"){
+    return(
+      <View style = {{flexDirection:'row', justifyContent:"center", marginTop:"5%"}}>
+      <View style = {{justifyContent:"center", alignItems:"center", marginBottom:"3%", marginTop:"1%", marginRight:"5%"}}>
+        <View style = {{backgroundColor:"#567FE5",paddingHorizontal:10, borderRadius:15}} >
+            <Text style = {{fontSize:20, color:'white'}}>Ai acceptat aceasta cerere</Text>
+        </View>
+      </View>
+  
+      
+  </View>
+  
+    )
+  }
+  else if(confirmed == 'notConfirmed'){
+   
+  return(
+    <View style = {{flexDirection:'row', justifyContent:"center", marginTop:"5%"}}>
+    <View style = {{justifyContent:"center", alignItems:"center", marginBottom:"3%", marginTop:"1%", marginRight:"5%"}}>
+      <TouchableOpacity style = {{backgroundColor:"#567FE5",paddingHorizontal:10, borderRadius:15}} onPress = {()=>{acceptRequest(message)}}>
+          <Text style = {{fontSize:20, color:'white'}}>Accepta</Text>
+      </TouchableOpacity>
+    </View>
+
+    <View style = {{justifyContent:"center", alignItems:"center", marginBottom:"3%", marginTop:"1%",marginLeft:"5%"}}>
+      <TouchableOpacity style = {{backgroundColor:"#780c0c",paddingHorizontal:10, borderRadius:15 } } onPress = {()=>{declineRequest(message)}}>
+          <Text style = {{fontSize:20, color:'white'}}>Refuza</Text>
+      </TouchableOpacity>
+    </View>
+</View>
+
+  )
+}
+}
+
 function returnMessageBody(message){
   var title;
 
@@ -151,9 +244,9 @@ switch(message.type){
         </TouchableOpacity>
         <Text style = {{marginLeft:"2%",fontSize: 20, color:textColor}}>Vei ridica masina la data de:</Text>
         
-        <Text style = {{fontWeight:"bold", textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.details.startDate} ora {route.params.message.messageBody.details.startHour}</Text>
+        <Text style = {{fontWeight:"bold", textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.rentPeriod.startDate} ora {route.params.message.messageBody.rentPeriod.startHour}</Text>
         <Text style = {{marginLeft:"2%", fontSize:20, color:textColor}}>Vei returna masina la data de: </Text>
-        <Text style = {{fontWeight:"bold",textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.details.endDate} ora {route.params.message.messageBody.details.endHour}</Text>
+        <Text style = {{fontWeight:"bold",textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.rentPeriod.endDate} ora {route.params.message.messageBody.rentPeriod.endHour}</Text>
 
         <Text style ={{marginLeft:"2%",marginBottom:"1%", fontSize:20, color:textColor, }}>  Un mesaj cu solicitarea ta a fost trimisa proprietarului masinii. Acesta va refuza sau accepta solicitarea ta. Vei primi un mesaj de indata ce acesta confirma cererea</Text>
         <Text style = {{fontSize:20, color:textColor, textAlign:"center"}}>Intre timp poti anula aceasta solicitare</Text>
@@ -194,9 +287,9 @@ switch(message.type){
           
           <Text style = {{marginLeft:"2%",fontSize: 20, color:textColor}}>Masina va fi ridicata la data: </Text>
           
-          <Text style = {{fontWeight:"bold", textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.details.startDate} ora {route.params.message.messageBody.details.startHour}</Text>
+          <Text style = {{fontWeight:"bold", textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.rentPeriod.startDate} ora {route.params.message.messageBody.rentPeriod.startHour}</Text>
           <Text style = {{marginLeft:"2%", fontSize:20, color:textColor}}>Si returnata la data de: </Text>
-          <Text style = {{fontWeight:"bold",textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.details.endDate} ora {route.params.message.messageBody.details.endHour}</Text>
+          <Text style = {{fontWeight:"bold",textAlign:"center",fontSize:20, color:textColor}}>{route.params.message.messageBody.rentPeriod.endDate} ora {route.params.message.messageBody.rentPeriod.endHour}</Text>
 
           <TouchableOpacity style = {{backgroundColor:"black", margin:5, borderRadius:10, overflow:'hidden'}} onPress = {()=>{navigation.navigate('CarInfoScreen', {userCar})}}>
               <SharedElement id = {`${userCar.photos[0]}`}>
@@ -205,20 +298,9 @@ switch(message.type){
           </TouchableOpacity>
             
           
-          <View style = {{flexDirection:'row', justifyContent:"center", marginTop:"5%"}}>
-          <View style = {{justifyContent:"center", alignItems:"center", marginBottom:"3%", marginTop:"1%", marginRight:"5%"}}>
-            <TouchableOpacity style = {{backgroundColor:"#567FE5",paddingHorizontal:10, borderRadius:15}} onPress = {()=>{acceptRequest(message)}}>
-                <Text style = {{fontSize:20, color:'white'}}>Accepta</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style = {{justifyContent:"center", alignItems:"center", marginBottom:"3%", marginTop:"1%",marginLeft:"5%"}}>
-            <TouchableOpacity style = {{backgroundColor:"#780c0c",paddingHorizontal:10, borderRadius:15 } } onPress = {()=>{declineRequest(message)}}>
-                <Text style = {{fontSize:20, color:'white'}}>Refuza</Text>
-            </TouchableOpacity>
-          </View>
-      </View>
-  
+        {
+          returnConfirmButtons(message)
+        }
       
     </ScrollView>
 

@@ -31,8 +31,7 @@ function CarInfoScreen( {navigation, route}){
     const [startHour, setStartHour] = useState();
     const [endHour, setEndHour] = useState();
     const [modalVisibleHour, setModalVisibleHour] = useState(false);
-    const [dateSelectedNotAvailable,setDateSelectedNotAvailable] = useState(false)
-    const [alreadyRequestedACar,setAlreadyRequestedACar] = useState(false)
+   
 
 useEffect(()=>{
     const user = auth().currentUser
@@ -62,23 +61,8 @@ const changeIndex = ({nativeEvent}) =>{
 
 function compareDates(date1,date2,time1,time2){
 
-    // if window1 > window2 ==> return false else true;
-    var month ={
-
-        '00':"01",
-        '01':"02",
-        '02':"03",
-        '03':"04",
-        '04':"05",
-        '05':"06",
-        '06':"07",
-        '07':"08",
-        '08':"09",
-        '09':"10",
-        '10':"11",
-        '11':"12"
-    
-    }
+   
+ 
     var [day1, month1, year1] = date1.split('-');
     var [day2, month2, year2] = date2.split('-');
 
@@ -115,7 +99,7 @@ function bookCar(){
         var requestCarMessageDocRef = firestore().collection('users').doc(`${user.uid}`).collection('messages').doc(`${messageId}`)
         var confirmCarRequestMessageDocRef = firestore().collection('users').doc(`${route.params.userCar.user}`).collection('messages').doc(`${messageId}`)
         var userDocRef = firestore().collection('users').doc(`${user.uid}`)
-
+    
         
            
 
@@ -135,10 +119,13 @@ function bookCar(){
                     transaction.set(requestCarMessageDocRef, {
                         type: 'carRequest',
                         carId:`${route.params.carId}`,
+                        
                         seen:false,
-                        requestDate: requestDate,
-                        requestHour: requestHour, 
-                        details: {
+                        requestTimestamp:{
+                            requestDate: requestDate, 
+                            requestHour: requestHour
+                        }, 
+                        rentPeriod: {
                             startDate: startDate,
                             endDate: endDate,
                             startHour: startHour,
@@ -150,19 +137,20 @@ function bookCar(){
                     })
                     transaction.set(confirmCarRequestMessageDocRef, {
                         type: 'confirmCarRequest',
-                        
+                      
                         carId:`${route.params.carId}`,
                         seen:false,
-                        sender: user.uid,
+                        
                         senderData: {
                             uid: user.uid,
                             displayName: user.displayName,
                             photoURL: user.photoURL
                         },
-                        
-                        requestDate: requestDate,
-                        requestHour: requestHour, 
-                        details: {
+                        requestTimestamp: {
+                            requestDate: requestDate,
+                            requestHour: requestHour
+                        },
+                        rentPeriod: {
                             startDate: startDate,
                             endDate: endDate,
                             startHour: startHour,
@@ -171,21 +159,24 @@ function bookCar(){
                     })
                 }
 
-                if(!requestedCar.exists){
-                    throw 'Document does not exist!'
-                }
+             
 
                 var currentCar = {
-                    startDate: startDate,
-                    endDate: endDate,
-                    startHour: startHour,
-                    endHour: endHour,
+
+                    rentPeriod: {
+                        startDate:startDate,
+                        endDate: endDate,
+                        startHour:startHour,
+                        endHour:endHour
+                    },
+
                     rentUser: user.uid,
                     carOwner: route.params.userCar.user,
-                    requestDate: requestDate,
-                    requestHour: requestHour,
-                    requestStatus: 'pending',
-                    additionalInfoFromOwner: ''
+                    requestTimestamp:{
+                        requestDate: requestDate,
+                        requestHour:requestHour
+                    },
+                    requestStatus: 'pending'
                 }
 
                 var i = scheduledTrips.length-1
@@ -205,8 +196,8 @@ function bookCar(){
                         }else{
                             
                             //insertion sort for dates 
-                            while( i >= 0 && compareDates(scheduledTrips[i].endDate, currentCar.startDate, scheduledTrips[i].endHour , currentCar.startHour)){
-                                console.log(scheduledTrips[i].endDate)
+                            while( i >= 0 && compareDates(scheduledTrips[i].rentPeriod.endDate, currentCar.rentPeriod.startDate, scheduledTrips[i].rentPeriod.endHour , currentCar.rentPeriod.startHour)){
+                                console.log(scheduledTrips[i].rentPeriod.endDate)
                                 scheduledTrips[i+1] = scheduledTrips[i]
                                 i--;
                             }
@@ -218,7 +209,7 @@ function bookCar(){
                             if(i==scheduledTrips.length-1){
                                 scheduledTrips[i+1] = currentCar;
                                 addTrip(transaction)
-                            }else if(compareDates(scheduledTrips[i+1].startDate,currentCar.endDate, scheduledTrips[i+1].startHour,currentCar.endHour)){
+                            }else if(compareDates(scheduledTrips[i+1].rentPeriod.startDate,currentCar.rentPeriod.endDate, scheduledTrips[i+1].rentPeriod.startHour,currentCar.rentPeriod.endHour)){
                                 scheduledTrips[i+1] = currentCar;
                                 addTrip(transaction)
                             }else{
